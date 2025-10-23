@@ -20,7 +20,7 @@ import concurrent.futures
 DSN_PATTERN = re.compile(r'(?i)(postgres(?:ql)?|mysql|mariadb|mongodb|sqlite|mssql)://[\w:@\-\.\/\%\?\=~\&]+')
 ENV_VAR_PATTERN = re.compile(r'(?m)^(DB_URL|DATABASE_URL|[A-Z_]*DB[A-Z_]*)[\s]*=[\s]*(.+)')
 ORM_MODEL_PATTERN = re.compile(r'class\s+(\w+)\s*\([^)]*models\.Model[^)]*\)')
-SQL_PATTERN = re.compile(r'(?is)(SELECT|INSERT|UPDATE|DELETE|CREATE\s+TABLE|ALTER\s+TABLE)\s+.+?')
+SQL_PATTERN = re.compile(r'(?is)(SELECT|INSERT|UPDATE|DELETE|CREATE\s+TABLE|ALTER\s+TABLE)\s+.+')
 
 
 def process_single_file(file_path: Path) -> List[Dict[str, Any]]:
@@ -93,7 +93,7 @@ def process_single_file(file_path: Path) -> List[Dict[str, Any]]:
                 "sql_type": sql_type,
                 "file": str(file_path),
                 "line": content[:match.start()].count('\n') + 1,
-                "evidence": [match.group(0)[:100] + "..."],  # Truncate long SQL
+                "evidence": [match.group(0)],
                 "confidence": 0.8,
             })
 

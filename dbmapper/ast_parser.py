@@ -104,7 +104,7 @@ class PythonASTParser:
                         "sql_type": self._identify_sql_type(sql_content),
                         "file": str(file_path),
                         "line": stmt.lineno,
-                        "evidence": [stmt.s[:100] + "..." if len(stmt.s) > 100 else stmt.s],
+                        "evidence": [stmt.s],
                         "confidence": 0.9,
                         "function": node.name
                     })
@@ -143,7 +143,7 @@ class PythonASTParser:
                             "sql_type": self._identify_sql_type(sql),
                             "file": str(file_path),
                             "line": node.lineno,
-                            "evidence": [node.args[0].s[:100] + "..." if len(node.args[0].s) > 100 else node.args[0].s],
+                            "evidence": [node.args[0].s],
                             "confidence": 0.85
                         })
 

@@ -78,7 +78,7 @@ def detect_csharp_db_patterns(content: str, file_path: Path) -> List[Dict[str, A
             "sql_type": "RAW_SQL",
             "file": str(file_path),
             "line": content[:match.start()].count('\n') + 1,
-            "evidence": [content[match.start():match.start()+50] + "..."],
+            "evidence": [match.group(0)],
             "confidence": 0.8,
         })
 

@@ -1,115 +1,33 @@
 {
   "summary": {
-    "files_scanned": 24,
-    "findings": 128,
+    "files_scanned": 22,
+    "findings": 75,
     "severity_breakdown": {
       "critical": 33,
-      "high": 29,
       "low": 14,
-      "medium": 52
+      "high": 25,
+      "medium": 3
     }
   },
   "findings": [
-    {
-      "type": "connection",
-      "provider": "postgresql",
-      "file": "example_project\\config\\settings.yaml",
-      "line": 7,
-      "evidence": [
-        "postgresql://dbuser:dbpass123@localhost:5432/myapp_db"
-      ],
-      "confidence": 0.95,
-      "description": "postgresql database connection defined in configuration file. Verify this configuration file is not committed to version control with sensitive data.",
-      "id": "f-0001",
-      "usage_context": {
-        "potential_models": 0,
-        "potential_queries": 0,
-        "usage_estimate": 0
-      },
-      "risk_score": 10,
-      "severity": "critical",
-      "risk_factors": [
-        "unencrypted_connection"
-      ]
-    },
-    {
-      "type": "connection",
-      "provider": "mongodb",
-      "file": "example_project\\config\\settings.yaml",
-      "line": 18,
-      "evidence": [
-        "mongodb://user:pass@mongo-cluster:27017/myapp"
-      ],
-      "confidence": 0.95,
-      "description": "mongodb database connection defined in configuration file. Verify this configuration file is not committed to version control with sensitive data.",
-      "id": "f-0002",
-      "usage_context": {
-        "potential_models": 0,
-        "potential_queries": 0,
-        "usage_estimate": 0
-      },
-      "risk_score": 10,
-      "severity": "critical",
-      "risk_factors": [
-        "remote_connection",
-        "unencrypted_connection"
-      ]
-    },
-    {
-      "type": "secret",
-      "secret_type": "password",
-      "file": "example_project\\config\\settings.yaml",
-      "line": 6,
-      "evidence": [
-        "password: *********"
-      ],
-      "confidence": 0.7,
-      "severity": "critical",
-      "description": "Password credential '********' detected in configuration file. This authentication secret must be protected and never committed to version control.",
-      "id": "f-0003",
-      "risk_score": 10,
-      "risk_factors": [
-        "credential_exposure"
-      ]
-    },
     {
       "type": "raw_sql",
       "sql_type": "SELECT",
       "file": "example_project\\config\\database.py",
       "line": 32,
       "evidence": [
-        "SELECT\n            C..."
+        "SELECT\n            COUNT(*) as total_users,\n            COUNT(CASE WHEN date_joined > CURRENT_DATE - INTERVAL '30 days' THEN 1 END) as new_users,\n            AVG(post_count) as avg_posts\n        FROM users\n    \"\"\",\n    'popular_posts': \"\"\"\n        SELECT p.title, COUNT(c.id) as comment_count\n        FROM posts p\n        LEFT JOIN comments c ON p.id = c.post_id\n        WHERE p.status = 'published'\n        GROUP BY p.id, p.title\n        ORDER BY comment_count DESC\n        LIMIT 10\n    \"\"\"\n}\n"
       ],
       "confidence": 0.8,
       "description": "Raw SQL SELECT query found in configuration file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0004",
+      "id": "f-0001",
       "usage_context": {
-        "sql_complexity": "low",
+        "sql_complexity": "high",
         "has_parameters": false,
-        "is_dynamic": false
+        "is_dynamic": true
       },
-      "risk_score": 6.72,
-      "severity": "high",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\config\\database.py",
-      "line": 39,
-      "evidence": [
-        "SELECT p..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in configuration file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0005",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 6.72,
-      "severity": "high",
+      "risk_score": 8.74,
+      "severity": "critical",
       "risk_factors": []
     },
     {
@@ -123,7 +41,7 @@
       ],
       "confidence": 0.95,
       "description": "Entity Framework entity 'AppDbContext' with DbSet configuration. This C# class represents a database table with navigation properties.",
-      "id": "f-0006",
+      "id": "f-0002",
       "usage_context": {
         "related_queries": 0,
         "available_connections": 0,
@@ -144,7 +62,7 @@
       ],
       "confidence": 0.9,
       "description": "Entity Framework entity 'AppDbContext' with DbSet configuration. This C# class represents a database table with navigation properties.",
-      "id": "f-0007",
+      "id": "f-0003",
       "usage_context": {
         "related_queries": 0,
         "available_connections": 0,
@@ -165,59 +83,101 @@
       ],
       "confidence": 0.9,
       "description": "Entity Framework entity 'User' with DbSet configuration. This C# class represents a database table with navigation properties.",
-      "id": "f-0008",
+      "id": "f-0004",
       "relationships": [
         {
           "type": "used_by_query",
-          "target_id": "f-0069",
+          "target_id": "f-0001",
+          "target_file": "example_project\\config\\database.py",
+          "description": "Model 'User' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0008",
+          "target_file": "example_project\\go\\models\\user.go",
+          "description": "Model 'User' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0028",
+          "target_file": "example_project\\php\\database\\migrations\\2024_01_01_000001_create_users_table.php",
+          "description": "Model 'User' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0030",
+          "target_file": "example_project\\ruby\\app\\models\\post.rb",
+          "description": "Model 'User' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0034",
+          "target_file": "example_project\\sql\\create_tables.sql",
+          "description": "Model 'User' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0044",
+          "target_file": "example_project\\sql\\migrate_data.sql",
+          "description": "Model 'User' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0051",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0070",
+          "target_id": "f-0052",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0071",
+          "target_id": "f-0053",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0072",
+          "target_id": "f-0054",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0073",
+          "target_id": "f-0055",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0074",
+          "target_id": "f-0056",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0075",
+          "target_id": "f-0057",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0076",
+          "target_id": "f-0058",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0077",
+          "target_id": "f-0059",
+          "target_file": "example_project\\scripts\\migrate_data.py",
+          "description": "Model 'User' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0060",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         }
@@ -242,17 +202,59 @@
       ],
       "confidence": 0.9,
       "description": "Entity Framework entity 'Post' with DbSet configuration. This C# class represents a database table with navigation properties.",
-      "id": "f-0009",
+      "id": "f-0005",
       "relationships": [
         {
           "type": "used_by_query",
-          "target_id": "f-0071",
+          "target_id": "f-0001",
+          "target_file": "example_project\\config\\database.py",
+          "description": "Model 'Post' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0007",
+          "target_file": "example_project\\go\\models\\post.go",
+          "description": "Model 'Post' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0015",
+          "target_file": "example_project\\js\\models\\post.js",
+          "description": "Model 'Post' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0030",
+          "target_file": "example_project\\ruby\\app\\models\\post.rb",
+          "description": "Model 'Post' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0034",
+          "target_file": "example_project\\sql\\create_tables.sql",
+          "description": "Model 'Post' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0044",
+          "target_file": "example_project\\sql\\migrate_data.sql",
+          "description": "Model 'Post' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0053",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'Post' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0075",
+          "target_id": "f-0057",
+          "target_file": "example_project\\scripts\\migrate_data.py",
+          "description": "Model 'Post' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0060",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'Post' is used in SQL query"
         }
@@ -277,7 +279,39 @@
       ],
       "confidence": 0.9,
       "description": "Entity Framework entity 'Comment' with DbSet configuration. This C# class represents a database table with navigation properties.",
-      "id": "f-0010",
+      "id": "f-0006",
+      "relationships": [
+        {
+          "type": "used_by_query",
+          "target_id": "f-0001",
+          "target_file": "example_project\\config\\database.py",
+          "description": "Model 'Comment' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0007",
+          "target_file": "example_project\\go\\models\\post.go",
+          "description": "Model 'Comment' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0015",
+          "target_file": "example_project\\js\\models\\post.js",
+          "description": "Model 'Comment' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0034",
+          "target_file": "example_project\\sql\\create_tables.sql",
+          "description": "Model 'Comment' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0044",
+          "target_file": "example_project\\sql\\migrate_data.sql",
+          "description": "Model 'Comment' is used in SQL query"
+        }
+      ],
       "usage_context": {
         "related_queries": 0,
         "available_connections": 0,
@@ -293,18 +327,18 @@
       "file": "example_project\\go\\models\\post.go",
       "line": 59,
       "evidence": [
-        "SELECT p..."
+        "SELECT p.*, COUNT(c.id) as comment_count\n\t\tFROM posts p\n\t\tLEFT JOIN comments c ON p.id = c.post_id\n\t\tWHERE p.status = 'published'\n\t\tGROUP BY p.id\n\t\tORDER BY comment_count DESC\n\t\tLIMIT ?\n\t`, limit).Scan(&posts).Error\n\treturn posts, err\n}\n"
       ],
       "confidence": 0.8,
       "description": "Raw SQL SELECT query found in model/entity file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0011",
+      "id": "f-0007",
       "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
+        "sql_complexity": "medium",
+        "has_parameters": true,
+        "is_dynamic": true
       },
-      "risk_score": 5.6,
-      "severity": "medium",
+      "risk_score": 7.28,
+      "severity": "high",
       "risk_factors": []
     },
     {
@@ -313,38 +347,18 @@
       "file": "example_project\\go\\models\\user.go",
       "line": 51,
       "evidence": [
-        "INSERT I..."
+        "INSERT INTO users (username, email, password, active, created_at, updated_at)\n\t\tSELECT username, email, password_hash, is_active, created_at, updated_at\n\t\tFROM legacy_users\n\t\tWHERE deleted = false\n\t`).Error\n}\n"
       ],
       "confidence": 0.8,
       "description": "Raw SQL INSERT statement in model/entity file. This operation adds data to database tables - ensure proper input validation to prevent SQL injection.",
-      "id": "f-0012",
+      "id": "f-0008",
       "usage_context": {
         "sql_complexity": "low",
         "has_parameters": false,
-        "is_dynamic": false
+        "is_dynamic": true
       },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\go\\models\\user.go",
-      "line": 52,
-      "evidence": [
-        "SELECT u..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in model/entity file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0013",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
+      "risk_score": 9.88,
+      "severity": "critical",
       "risk_factors": []
     },
     {
@@ -354,6 +368,91 @@
       "line": 26,
       "evidence": [
         "password             = \"*************\""
+      ],
+      "confidence": 0.7,
+      "severity": "critical",
+      "description": "Password credential '********' detected in application file. This authentication secret must be protected and never committed to version control.",
+      "id": "f-0009",
+      "risk_score": 10,
+      "risk_factors": [
+        "credential_exposure"
+      ]
+    },
+    {
+      "type": "secret",
+      "secret_type": "password",
+      "file": "example_project\\infrastructure\\main.tf",
+      "line": 26,
+      "evidence": [
+        "password             = \"*************\""
+      ],
+      "confidence": 0.7,
+      "severity": "critical",
+      "description": "Password credential '********' detected in application file. This authentication secret must be protected and never committed to version control.",
+      "id": "f-0010",
+      "risk_score": 10,
+      "risk_factors": [
+        "credential_exposure"
+      ]
+    },
+    {
+      "type": "secret",
+      "secret_type": "password",
+      "file": "example_project\\infrastructure\\main.tf",
+      "line": 50,
+      "evidence": [
+        "password             = \"************\""
+      ],
+      "confidence": 0.7,
+      "severity": "critical",
+      "description": "Password credential '********' detected in application file. This authentication secret must be protected and never committed to version control.",
+      "id": "f-0011",
+      "risk_score": 10,
+      "risk_factors": [
+        "credential_exposure"
+      ]
+    },
+    {
+      "type": "secret",
+      "secret_type": "password",
+      "file": "example_project\\infrastructure\\main.tf",
+      "line": 50,
+      "evidence": [
+        "password             = \"************\""
+      ],
+      "confidence": 0.7,
+      "severity": "critical",
+      "description": "Password credential '********' detected in application file. This authentication secret must be protected and never committed to version control.",
+      "id": "f-0012",
+      "risk_score": 10,
+      "risk_factors": [
+        "credential_exposure"
+      ]
+    },
+    {
+      "type": "secret",
+      "secret_type": "password",
+      "file": "example_project\\infrastructure\\main.tf",
+      "line": 84,
+      "evidence": [
+        "master_password         = \"*************\""
+      ],
+      "confidence": 0.7,
+      "severity": "critical",
+      "description": "Password credential '********' detected in application file. This authentication secret must be protected and never committed to version control.",
+      "id": "f-0013",
+      "risk_score": 10,
+      "risk_factors": [
+        "credential_exposure"
+      ]
+    },
+    {
+      "type": "secret",
+      "secret_type": "password",
+      "file": "example_project\\infrastructure\\main.tf",
+      "line": 84,
+      "evidence": [
+        "master_password         = \"*************\""
       ],
       "confidence": 0.7,
       "severity": "critical",
@@ -365,203 +464,42 @@
       ]
     },
     {
-      "type": "secret",
-      "secret_type": "password",
-      "file": "example_project\\infrastructure\\main.tf",
-      "line": 26,
+      "type": "raw_sql",
+      "sql_type": "SELECT",
+      "file": "example_project\\js\\models\\post.js",
+      "line": 42,
       "evidence": [
-        "password             = \"*************\""
+        "SELECT p.title, COUNT(c.id) as commentCount\n    FROM posts p\n    LEFT JOIN comments c ON p.id = c.postId\n    WHERE p.status = 'published'\n    GROUP BY p.id, p.title\n    ORDER BY commentCount DESC\n    LIMIT 10\n  `);\n  return results;\n};\n\nPost.migrateData = async () => {\n  await sequelize.query(`\n    INSERT INTO posts (title, content, authorId, status, createdAt, updatedAt)\n    SELECT title, content, author_id, 'published', created_at, updated_at\n    FROM old_posts\n    WHERE deleted = false\n  `);\n\n  await sequelize.query('DROP TABLE old_posts');\n};\n\nmodule.exports = Post;\n"
       ],
-      "confidence": 0.7,
-      "severity": "critical",
-      "description": "Password credential '********' detected in application file. This authentication secret must be protected and never committed to version control.",
+      "confidence": 0.8,
+      "description": "Raw SQL SELECT query found in model/entity file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
       "id": "f-0015",
-      "risk_score": 10,
+      "usage_context": {
+        "sql_complexity": "high",
+        "has_parameters": false,
+        "is_dynamic": true
+      },
+      "risk_score": 9.88,
+      "severity": "critical",
       "risk_factors": [
-        "credential_exposure"
+        "destructive_operation"
       ]
     },
     {
-      "type": "secret",
-      "secret_type": "password",
-      "file": "example_project\\infrastructure\\main.tf",
-      "line": 50,
+      "type": "schema_change",
+      "change_type": "drop_table",
+      "table_name": "old_posts",
+      "description": "Schema Change found in model/entity file. This database-related artifact should be reviewed for security and best practices.",
+      "file": "example_project\\js\\models\\post.js",
+      "line": 61,
       "evidence": [
-        "password             = \"************\""
+        "await sequelize.query('DROP TABLE old_posts');"
       ],
-      "confidence": 0.7,
-      "severity": "critical",
-      "description": "Password credential '********' detected in application file. This authentication secret must be protected and never committed to version control.",
+      "confidence": 0.8,
       "id": "f-0016",
-      "risk_score": 10,
-      "risk_factors": [
-        "credential_exposure"
-      ]
-    },
-    {
-      "type": "secret",
-      "secret_type": "password",
-      "file": "example_project\\infrastructure\\main.tf",
-      "line": 50,
-      "evidence": [
-        "password             = \"************\""
-      ],
-      "confidence": 0.7,
-      "severity": "critical",
-      "description": "Password credential '********' detected in application file. This authentication secret must be protected and never committed to version control.",
-      "id": "f-0017",
-      "risk_score": 10,
-      "risk_factors": [
-        "credential_exposure"
-      ]
-    },
-    {
-      "type": "secret",
-      "secret_type": "password",
-      "file": "example_project\\infrastructure\\main.tf",
-      "line": 84,
-      "evidence": [
-        "master_password         = \"*************\""
-      ],
-      "confidence": 0.7,
-      "severity": "critical",
-      "description": "Password credential '********' detected in application file. This authentication secret must be protected and never committed to version control.",
-      "id": "f-0018",
-      "risk_score": 10,
-      "risk_factors": [
-        "credential_exposure"
-      ]
-    },
-    {
-      "type": "secret",
-      "secret_type": "password",
-      "file": "example_project\\infrastructure\\main.tf",
-      "line": 84,
-      "evidence": [
-        "master_password         = \"*************\""
-      ],
-      "confidence": 0.7,
-      "severity": "critical",
-      "description": "Password credential '********' detected in application file. This authentication secret must be protected and never committed to version control.",
-      "id": "f-0019",
-      "risk_score": 10,
-      "risk_factors": [
-        "credential_exposure"
-      ]
-    },
-    {
-      "type": "connection",
-      "provider": "postgresql",
-      "file": "example_project\\infrastructure\\docker-compose.yml",
-      "line": 57,
-      "evidence": [
-        "postgresql://dbuser:dbpassword123@postgres:5432/myapp"
-      ],
-      "confidence": 0.95,
-      "description": "postgresql database connection defined in application file. Verify this configuration file is not committed to version control with sensitive data.",
-      "id": "f-0020",
-      "usage_context": {
-        "potential_models": 0,
-        "potential_queries": 0,
-        "usage_estimate": 0
-      },
-      "risk_score": 10,
-      "severity": "critical",
-      "risk_factors": [
-        "remote_connection",
-        "unencrypted_connection"
-      ]
-    },
-    {
-      "type": "connection",
-      "provider": "mongodb",
-      "file": "example_project\\infrastructure\\docker-compose.yml",
-      "line": 59,
-      "evidence": [
-        "mongodb://admin:password123@mongo:27017/myapp"
-      ],
-      "confidence": 0.95,
-      "description": "mongodb database connection defined in application file. Verify this configuration file is not committed to version control with sensitive data.",
-      "id": "f-0021",
-      "usage_context": {
-        "potential_models": 0,
-        "potential_queries": 0,
-        "usage_estimate": 0
-      },
-      "risk_score": 10,
-      "severity": "critical",
-      "risk_factors": [
-        "remote_connection",
-        "unencrypted_connection"
-      ]
-    },
-    {
-      "type": "secret",
-      "secret_type": "password",
-      "file": "example_project\\infrastructure\\docker-compose.yml",
-      "line": 9,
-      "evidence": [
-        "POSTGRES_PASSWORD: *************"
-      ],
-      "confidence": 0.7,
-      "severity": "critical",
-      "description": "Password credential '********' detected in application file. This authentication secret must be protected and never committed to version control.",
-      "id": "f-0022",
-      "risk_score": 10,
-      "risk_factors": [
-        "credential_exposure"
-      ]
-    },
-    {
-      "type": "secret",
-      "secret_type": "password",
-      "file": "example_project\\infrastructure\\docker-compose.yml",
-      "line": 21,
-      "evidence": [
-        "MYSQL_ROOT_PASSWORD: ************"
-      ],
-      "confidence": 0.7,
-      "severity": "critical",
-      "description": "Password credential '********' detected in application file. This authentication secret must be protected and never committed to version control.",
-      "id": "f-0023",
-      "risk_score": 10,
-      "risk_factors": [
-        "credential_exposure"
-      ]
-    },
-    {
-      "type": "secret",
-      "secret_type": "password",
-      "file": "example_project\\infrastructure\\docker-compose.yml",
-      "line": 24,
-      "evidence": [
-        "MYSQL_PASSWORD: ************"
-      ],
-      "confidence": 0.7,
-      "severity": "critical",
-      "description": "Password credential '********' detected in application file. This authentication secret must be protected and never committed to version control.",
-      "id": "f-0024",
-      "risk_score": 10,
-      "risk_factors": [
-        "credential_exposure"
-      ]
-    },
-    {
-      "type": "secret",
-      "secret_type": "password",
-      "file": "example_project\\infrastructure\\docker-compose.yml",
-      "line": 45,
-      "evidence": [
-        "MONGO_INITDB_ROOT_PASSWORD: ***********"
-      ],
-      "confidence": 0.7,
-      "severity": "critical",
-      "description": "Password credential '********' detected in application file. This authentication secret must be protected and never committed to version control.",
-      "id": "f-0025",
-      "risk_score": 10,
-      "risk_factors": [
-        "credential_exposure"
-      ]
+      "risk_score": 6.4,
+      "severity": "high",
+      "risk_factors": []
     },
     {
       "type": "secret",
@@ -574,7 +512,7 @@
       "confidence": 0.7,
       "severity": "critical",
       "description": "Password credential '********' detected in model/entity file. This authentication secret must be protected and never committed to version control.",
-      "id": "f-0026",
+      "id": "f-0017",
       "risk_score": 10,
       "risk_factors": [
         "credential_exposure"
@@ -591,133 +529,11 @@
       "confidence": 0.7,
       "severity": "critical",
       "description": "Password credential '********' detected in model/entity file. This authentication secret must be protected and never committed to version control.",
-      "id": "f-0027",
+      "id": "f-0018",
       "risk_score": 10,
       "risk_factors": [
         "credential_exposure"
       ]
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\js\\models\\post.js",
-      "line": 42,
-      "evidence": [
-        "SELECT p..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in model/entity file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0028",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "INSERT",
-      "file": "example_project\\js\\models\\post.js",
-      "line": 55,
-      "evidence": [
-        "INSERT I..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL INSERT statement in model/entity file. This operation adds data to database tables - ensure proper input validation to prevent SQL injection.",
-      "id": "f-0029",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\js\\models\\post.js",
-      "line": 56,
-      "evidence": [
-        "SELECT t..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in model/entity file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0030",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "schema_change",
-      "change_type": "drop_table",
-      "table_name": "old_posts",
-      "description": "Schema Change found in model/entity file. This database-related artifact should be reviewed for security and best practices.",
-      "file": "example_project\\js\\models\\post.js",
-      "line": 61,
-      "evidence": [
-        "await sequelize.query('DROP TABLE old_posts');"
-      ],
-      "confidence": 0.8,
-      "id": "f-0031",
-      "risk_score": 6.4,
-      "severity": "high",
-      "risk_factors": []
-    },
-    {
-      "type": "orm_model",
-      "framework": "django",
-      "model_name": "Profile",
-      "file": "example_project\\models\\user.py",
-      "line": 12,
-      "evidence": [
-        "class Profile(models.Model):"
-      ],
-      "confidence": 0.95,
-      "fields": [
-        "user: OneToOneField",
-        "bio: TextField",
-        "avatar: ImageField"
-      ],
-      "description": "Django model 'Profile' defined with 1 fields. This model represents a database table and includes relationships to other models.",
-      "id": "f-0032",
-      "usage_context": {
-        "related_queries": 0,
-        "available_connections": 0,
-        "risk_level": "medium"
-      },
-      "risk_score": 3.8,
-      "severity": "low",
-      "risk_factors": []
-    },
-    {
-      "type": "orm_model",
-      "framework": "django",
-      "file": "example_project\\models\\user.py",
-      "line": 12,
-      "evidence": [
-        "class Profile(models.Model):"
-      ],
-      "confidence": 0.95,
-      "description": "Django model 'Unknown' defined with 1 fields. This model represents a database table and includes relationships to other models.",
-      "id": "f-0033",
-      "usage_context": {
-        "related_queries": 0,
-        "available_connections": 0,
-        "risk_level": "medium"
-      },
-      "risk_score": 3.8,
-      "severity": "low",
-      "risk_factors": []
     },
     {
       "type": "orm_model",
@@ -730,59 +546,101 @@
       ],
       "confidence": 0.95,
       "description": "Laravel Eloquent model 'User' extending the base Model class. This PHP class provides ORM functionality for database operations.",
-      "id": "f-0034",
+      "id": "f-0019",
       "relationships": [
         {
           "type": "used_by_query",
-          "target_id": "f-0069",
+          "target_id": "f-0001",
+          "target_file": "example_project\\config\\database.py",
+          "description": "Model 'User' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0008",
+          "target_file": "example_project\\go\\models\\user.go",
+          "description": "Model 'User' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0028",
+          "target_file": "example_project\\php\\database\\migrations\\2024_01_01_000001_create_users_table.php",
+          "description": "Model 'User' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0030",
+          "target_file": "example_project\\ruby\\app\\models\\post.rb",
+          "description": "Model 'User' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0034",
+          "target_file": "example_project\\sql\\create_tables.sql",
+          "description": "Model 'User' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0044",
+          "target_file": "example_project\\sql\\migrate_data.sql",
+          "description": "Model 'User' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0051",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0070",
+          "target_id": "f-0052",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0071",
+          "target_id": "f-0053",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0072",
+          "target_id": "f-0054",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0073",
+          "target_id": "f-0055",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0074",
+          "target_id": "f-0056",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0075",
+          "target_id": "f-0057",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0076",
+          "target_id": "f-0058",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0077",
+          "target_id": "f-0059",
+          "target_file": "example_project\\scripts\\migrate_data.py",
+          "description": "Model 'User' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0060",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'User' is used in SQL query"
         }
@@ -812,7 +670,15 @@
         "description: TextField"
       ],
       "description": "Django model 'Category' defined with 1 fields. This model represents a database table and includes relationships to other models.",
-      "id": "f-0035",
+      "id": "f-0020",
+      "relationships": [
+        {
+          "type": "used_by_query",
+          "target_id": "f-0034",
+          "target_file": "example_project\\sql\\create_tables.sql",
+          "description": "Model 'Category' is used in SQL query"
+        }
+      ],
       "usage_context": {
         "related_queries": 0,
         "available_connections": 0,
@@ -844,17 +710,59 @@
         "updated_at: DateTimeField"
       ],
       "description": "Django model 'Post' defined with 1 fields. This model represents a database table and includes relationships to other models.",
-      "id": "f-0036",
+      "id": "f-0021",
       "relationships": [
         {
           "type": "used_by_query",
-          "target_id": "f-0071",
+          "target_id": "f-0001",
+          "target_file": "example_project\\config\\database.py",
+          "description": "Model 'Post' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0007",
+          "target_file": "example_project\\go\\models\\post.go",
+          "description": "Model 'Post' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0015",
+          "target_file": "example_project\\js\\models\\post.js",
+          "description": "Model 'Post' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0030",
+          "target_file": "example_project\\ruby\\app\\models\\post.rb",
+          "description": "Model 'Post' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0034",
+          "target_file": "example_project\\sql\\create_tables.sql",
+          "description": "Model 'Post' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0044",
+          "target_file": "example_project\\sql\\migrate_data.sql",
+          "description": "Model 'Post' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0053",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'Post' is used in SQL query"
         },
         {
           "type": "used_by_query",
-          "target_id": "f-0075",
+          "target_id": "f-0057",
+          "target_file": "example_project\\scripts\\migrate_data.py",
+          "description": "Model 'Post' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0060",
           "target_file": "example_project\\scripts\\migrate_data.py",
           "description": "Model 'Post' is used in SQL query"
         }
@@ -886,7 +794,39 @@
         "is_approved: BooleanField"
       ],
       "description": "Django model 'Comment' defined with 1 fields. This model represents a database table and includes relationships to other models.",
-      "id": "f-0037",
+      "id": "f-0022",
+      "relationships": [
+        {
+          "type": "used_by_query",
+          "target_id": "f-0001",
+          "target_file": "example_project\\config\\database.py",
+          "description": "Model 'Comment' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0007",
+          "target_file": "example_project\\go\\models\\post.go",
+          "description": "Model 'Comment' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0015",
+          "target_file": "example_project\\js\\models\\post.js",
+          "description": "Model 'Comment' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0034",
+          "target_file": "example_project\\sql\\create_tables.sql",
+          "description": "Model 'Comment' is used in SQL query"
+        },
+        {
+          "type": "used_by_query",
+          "target_id": "f-0044",
+          "target_file": "example_project\\sql\\migrate_data.sql",
+          "description": "Model 'Comment' is used in SQL query"
+        }
+      ],
       "usage_context": {
         "related_queries": 0,
         "available_connections": 0,
@@ -906,7 +846,7 @@
       ],
       "confidence": 0.95,
       "description": "Django model 'Unknown' defined with 1 fields. This model represents a database table and includes relationships to other models.",
-      "id": "f-0038",
+      "id": "f-0023",
       "usage_context": {
         "related_queries": 0,
         "available_connections": 0,
@@ -926,7 +866,7 @@
       ],
       "confidence": 0.95,
       "description": "Django model 'Unknown' defined with 1 fields. This model represents a database table and includes relationships to other models.",
-      "id": "f-0039",
+      "id": "f-0024",
       "usage_context": {
         "related_queries": 0,
         "available_connections": 0,
@@ -946,7 +886,7 @@
       ],
       "confidence": 0.95,
       "description": "Django model 'Unknown' defined with 1 fields. This model represents a database table and includes relationships to other models.",
-      "id": "f-0040",
+      "id": "f-0025",
       "usage_context": {
         "related_queries": 0,
         "available_connections": 0,
@@ -954,6 +894,128 @@
       },
       "risk_score": 3.8,
       "severity": "low",
+      "risk_factors": []
+    },
+    {
+      "type": "orm_model",
+      "framework": "django",
+      "model_name": "Profile",
+      "file": "example_project\\models\\user.py",
+      "line": 12,
+      "evidence": [
+        "class Profile(models.Model):"
+      ],
+      "confidence": 0.95,
+      "fields": [
+        "user: OneToOneField",
+        "bio: TextField",
+        "avatar: ImageField"
+      ],
+      "description": "Django model 'Profile' defined with 1 fields. This model represents a database table and includes relationships to other models.",
+      "id": "f-0026",
+      "usage_context": {
+        "related_queries": 0,
+        "available_connections": 0,
+        "risk_level": "medium"
+      },
+      "risk_score": 3.8,
+      "severity": "low",
+      "risk_factors": []
+    },
+    {
+      "type": "orm_model",
+      "framework": "django",
+      "file": "example_project\\models\\user.py",
+      "line": 12,
+      "evidence": [
+        "class Profile(models.Model):"
+      ],
+      "confidence": 0.95,
+      "description": "Django model 'Unknown' defined with 1 fields. This model represents a database table and includes relationships to other models.",
+      "id": "f-0027",
+      "usage_context": {
+        "related_queries": 0,
+        "available_connections": 0,
+        "risk_level": "medium"
+      },
+      "risk_score": 3.8,
+      "severity": "low",
+      "risk_factors": []
+    },
+    {
+      "type": "raw_sql",
+      "sql_type": "ALTER TABLE",
+      "file": "example_project\\php\\database\\migrations\\2024_01_01_000001_create_users_table.php",
+      "line": 27,
+      "evidence": [
+        "ALTER TABLE users ADD COLUMN active BOOLEAN DEFAULT TRUE');\n\n        // Insert default admin user\n        DB::table('users')->insert([\n            'name' => 'Admin User',\n            'email' => 'admin@example.com',\n            'password' => bcrypt('password'),\n            'created_at' => now(),\n            'updated_at' => now(),\n        ]);\n    }\n\n    /**\n     * Reverse the migrations.\n     */\n    public function down(): void\n    {\n        Schema::dropIfExists('users');\n    }\n};\n"
+      ],
+      "confidence": 0.8,
+      "description": "Raw Sql found in migration file. This database-related artifact should be reviewed for security and best practices.",
+      "id": "f-0028",
+      "usage_context": {
+        "sql_complexity": "low",
+        "has_parameters": false,
+        "is_dynamic": false
+      },
+      "risk_score": 10,
+      "severity": "critical",
+      "risk_factors": [
+        "destructive_operation"
+      ]
+    },
+    {
+      "type": "schema_change",
+      "change_type": "alter_table",
+      "table_name": "users",
+      "description": "Schema Change found in migration file. This database-related artifact should be reviewed for security and best practices.",
+      "file": "example_project\\php\\database\\migrations\\2024_01_01_000001_create_users_table.php",
+      "line": 27,
+      "evidence": [
+        "DB::statement('ALTER TABLE users ADD COLUMN active BOOLEAN DEFAULT TRUE');"
+      ],
+      "confidence": 0.8,
+      "id": "f-0029",
+      "risk_score": 6.4,
+      "severity": "high",
+      "risk_factors": []
+    },
+    {
+      "type": "raw_sql",
+      "sql_type": "INSERT",
+      "file": "example_project\\ruby\\app\\models\\post.rb",
+      "line": 27,
+      "evidence": [
+        "INSERT INTO posts (title, content, user_id, status, created_at, updated_at)\n      SELECT title, content, author_id, 1, created_at, updated_at\n      FROM legacy_posts\n      WHERE deleted = false\n    SQL\n\n    connection.execute('DROP TABLE legacy_posts')\n  end\n\n  private\n\n  def status_changed_to_published?\n    status_changed? && published?\n  end\n\n  def update_published_at\n    self.published_at = Time.current\n  end\nend\n"
+      ],
+      "confidence": 0.8,
+      "description": "Raw SQL INSERT statement in model/entity file. This operation adds data to database tables - ensure proper input validation to prevent SQL injection.",
+      "id": "f-0030",
+      "usage_context": {
+        "sql_complexity": "low",
+        "has_parameters": true,
+        "is_dynamic": true
+      },
+      "risk_score": 9.88,
+      "severity": "critical",
+      "risk_factors": [
+        "destructive_operation"
+      ]
+    },
+    {
+      "type": "schema_change",
+      "change_type": "drop_table",
+      "table_name": "legacy_posts",
+      "description": "Schema Change found in model/entity file. This database-related artifact should be reviewed for security and best practices.",
+      "file": "example_project\\ruby\\app\\models\\post.rb",
+      "line": 33,
+      "evidence": [
+        "connection.execute('DROP TABLE legacy_posts')"
+      ],
+      "confidence": 0.8,
+      "id": "f-0031",
+      "risk_score": 6.4,
+      "severity": "high",
       "risk_factors": []
     },
     {
@@ -967,7 +1029,7 @@
       "confidence": 0.7,
       "severity": "critical",
       "description": "Password credential '********' detected in model/entity file. This authentication secret must be protected and never committed to version control.",
-      "id": "f-0041",
+      "id": "f-0032",
       "risk_score": 10,
       "risk_factors": [
         "credential_exposure"
@@ -984,7 +1046,7 @@
       "confidence": 0.7,
       "severity": "critical",
       "description": "Password credential '********' detected in model/entity file. This authentication secret must be protected and never committed to version control.",
-      "id": "f-0042",
+      "id": "f-0033",
       "risk_score": 10,
       "risk_factors": [
         "credential_exposure"
@@ -992,334 +1054,22 @@
     },
     {
       "type": "raw_sql",
-      "sql_type": "INSERT",
-      "file": "example_project\\ruby\\app\\models\\post.rb",
-      "line": 27,
-      "evidence": [
-        "INSERT I..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL INSERT statement in model/entity file. This operation adds data to database tables - ensure proper input validation to prevent SQL injection.",
-      "id": "f-0043",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\ruby\\app\\models\\post.rb",
-      "line": 28,
-      "evidence": [
-        "SELECT t..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in model/entity file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0044",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "schema_change",
-      "change_type": "drop_table",
-      "table_name": "legacy_posts",
-      "description": "Schema Change found in model/entity file. This database-related artifact should be reviewed for security and best practices.",
-      "file": "example_project\\ruby\\app\\models\\post.rb",
-      "line": 33,
-      "evidence": [
-        "connection.execute('DROP TABLE legacy_posts')"
-      ],
-      "confidence": 0.8,
-      "id": "f-0045",
-      "risk_score": 6.4,
-      "severity": "high",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "ALTER TABLE",
-      "file": "example_project\\php\\database\\migrations\\2024_01_01_000001_create_users_table.php",
-      "line": 27,
-      "evidence": [
-        "ALTER TABLE u..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw Sql found in migration file. This database-related artifact should be reviewed for security and best practices.",
-      "id": "f-0046",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "INSERT",
-      "file": "example_project\\php\\database\\migrations\\2024_01_01_000001_create_users_table.php",
-      "line": 29,
-      "evidence": [
-        "Insert d..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL INSERT statement in migration file. This operation adds data to database tables - ensure proper input validation to prevent SQL injection.",
-      "id": "f-0047",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "schema_change",
-      "change_type": "alter_table",
-      "table_name": "users",
-      "description": "Schema Change found in migration file. This database-related artifact should be reviewed for security and best practices.",
-      "file": "example_project\\php\\database\\migrations\\2024_01_01_000001_create_users_table.php",
-      "line": 27,
-      "evidence": [
-        "DB::statement('ALTER TABLE users ADD COLUMN active BOOLEAN DEFAULT TRUE');"
-      ],
-      "confidence": 0.8,
-      "id": "f-0048",
-      "risk_score": 6.4,
-      "severity": "high",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
       "sql_type": "CREATE TABLE",
       "file": "example_project\\sql\\create_tables.sql",
       "line": 4,
       "evidence": [
-        "CREATE TABLE u..."
+        "CREATE TABLE users (\n    id SERIAL PRIMARY KEY,\n    username VARCHAR(50) UNIQUE NOT NULL,\n    email VARCHAR(255) UNIQUE NOT NULL,\n    password VARCHAR(255) NOT NULL,\n    active BOOLEAN DEFAULT TRUE,\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\n-- Create posts table\nCREATE TABLE posts (\n    id SERIAL PRIMARY KEY,\n    title VARCHAR(200) NOT NULL,\n    content TEXT NOT NULL,\n    status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived')),\n    published_at TIMESTAMP NULL,\n    author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\n-- Create comments table\nCREATE TABLE comments (\n    id SERIAL PRIMARY KEY,\n    content TEXT NOT NULL,\n    post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,\n    author_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\n-- Create categories table\nCREATE TABLE categories (\n    id SERIAL PRIMARY KEY,\n    name VARCHAR(100) NOT NULL,\n    slug VARCHAR(100) UNIQUE NOT NULL,\n    description TEXT,\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\n-- Add category reference to posts\nALTER TABLE posts ADD COLUMN category_id INTEGER REFERENCES categories(id);\n\n-- Create indexes\nCREATE INDEX idx_posts_author_id ON posts(author_id);\nCREATE INDEX idx_posts_status ON posts(status);\nCREATE INDEX idx_comments_post_id ON comments(post_id);\nCREATE INDEX idx_comments_author_id ON comments(author_id);\n\n-- Insert sample data\nINSERT INTO users (username, email, password) VALUES\n('admin', 'admin@example.com', 'hashed_password_1'),\n('user1', 'user1@example.com', 'hashed_password_2');\n\nINSERT INTO categories (name, slug, description) VALUES\n('Technology', 'technology', 'Posts about technology'),\n('Lifestyle', 'lifestyle', 'Posts about lifestyle');\n"
       ],
       "confidence": 0.8,
-      "description": "Raw Sql found in application file. This database-related artifact should be reviewed for security and best practices.",
-      "id": "f-0049",
+      "description": "Complex raw SQL query spanning multiple operations. This application file contains advanced database logic that may benefit from ORM migration.",
+      "id": "f-0034",
       "usage_context": {
-        "sql_complexity": "low",
+        "sql_complexity": "medium",
         "has_parameters": false,
         "is_dynamic": false
       },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "CREATE TABLE",
-      "file": "example_project\\sql\\create_tables.sql",
-      "line": 15,
-      "evidence": [
-        "CREATE TABLE p..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw Sql found in application file. This database-related artifact should be reviewed for security and best practices.",
-      "id": "f-0050",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "DELETE",
-      "file": "example_project\\sql\\create_tables.sql",
-      "line": 21,
-      "evidence": [
-        "DELETE C..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL DELETE statement in application file. This removes data from database tables - extreme caution required as this operation cannot be undone.",
-      "id": "f-0051",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 7.6,
-      "severity": "high",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "CREATE TABLE",
-      "file": "example_project\\sql\\create_tables.sql",
-      "line": 27,
-      "evidence": [
-        "CREATE TABLE c..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw Sql found in application file. This database-related artifact should be reviewed for security and best practices.",
-      "id": "f-0052",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "DELETE",
-      "file": "example_project\\sql\\create_tables.sql",
-      "line": 30,
-      "evidence": [
-        "DELETE C..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL DELETE statement in application file. This removes data from database tables - extreme caution required as this operation cannot be undone.",
-      "id": "f-0053",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 7.6,
-      "severity": "high",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "DELETE",
-      "file": "example_project\\sql\\create_tables.sql",
-      "line": 31,
-      "evidence": [
-        "DELETE C..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL DELETE statement in application file. This removes data from database tables - extreme caution required as this operation cannot be undone.",
-      "id": "f-0054",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 7.6,
-      "severity": "high",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "CREATE TABLE",
-      "file": "example_project\\sql\\create_tables.sql",
-      "line": 36,
-      "evidence": [
-        "CREATE TABLE c..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw Sql found in application file. This database-related artifact should be reviewed for security and best practices.",
-      "id": "f-0055",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "ALTER TABLE",
-      "file": "example_project\\sql\\create_tables.sql",
-      "line": 45,
-      "evidence": [
-        "ALTER TABLE p..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw Sql found in application file. This database-related artifact should be reviewed for security and best practices.",
-      "id": "f-0056",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "INSERT",
-      "file": "example_project\\sql\\create_tables.sql",
-      "line": 53,
-      "evidence": [
-        "Insert s..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL INSERT statement in application file. This operation adds data to database tables - ensure proper input validation to prevent SQL injection.",
-      "id": "f-0057",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "INSERT",
-      "file": "example_project\\sql\\create_tables.sql",
-      "line": 54,
-      "evidence": [
-        "INSERT I..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL INSERT statement in application file. This operation adds data to database tables - ensure proper input validation to prevent SQL injection.",
-      "id": "f-0058",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "INSERT",
-      "file": "example_project\\sql\\create_tables.sql",
-      "line": 58,
-      "evidence": [
-        "INSERT I..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL INSERT statement in application file. This operation adds data to database tables - ensure proper input validation to prevent SQL injection.",
-      "id": "f-0059",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
+      "risk_score": 10,
+      "severity": "critical",
       "risk_factors": []
     },
     {
@@ -1333,7 +1083,7 @@
         "CREATE TABLE users ("
       ],
       "confidence": 0.8,
-      "id": "f-0060",
+      "id": "f-0035",
       "risk_score": 6.4,
       "severity": "high",
       "risk_factors": []
@@ -1349,7 +1099,7 @@
         "CREATE TABLE posts ("
       ],
       "confidence": 0.8,
-      "id": "f-0061",
+      "id": "f-0036",
       "risk_score": 6.4,
       "severity": "high",
       "risk_factors": []
@@ -1365,7 +1115,7 @@
         "CREATE TABLE comments ("
       ],
       "confidence": 0.8,
-      "id": "f-0062",
+      "id": "f-0037",
       "risk_score": 6.4,
       "severity": "high",
       "risk_factors": []
@@ -1381,7 +1131,7 @@
         "CREATE TABLE categories ("
       ],
       "confidence": 0.8,
-      "id": "f-0063",
+      "id": "f-0038",
       "risk_score": 6.4,
       "severity": "high",
       "risk_factors": []
@@ -1397,7 +1147,7 @@
         "ALTER TABLE posts ADD COLUMN category_id INTEGER REFERENCES categories(id);"
       ],
       "confidence": 0.8,
-      "id": "f-0064",
+      "id": "f-0039",
       "risk_score": 6.4,
       "severity": "high",
       "risk_factors": []
@@ -1413,7 +1163,7 @@
         "CREATE INDEX idx_posts_author_id ON posts(author_id);"
       ],
       "confidence": 0.8,
-      "id": "f-0065",
+      "id": "f-0040",
       "risk_score": 6.4,
       "severity": "high",
       "risk_factors": []
@@ -1429,7 +1179,7 @@
         "CREATE INDEX idx_posts_status ON posts(status);"
       ],
       "confidence": 0.8,
-      "id": "f-0066",
+      "id": "f-0041",
       "risk_score": 6.4,
       "severity": "high",
       "risk_factors": []
@@ -1445,7 +1195,7 @@
         "CREATE INDEX idx_comments_post_id ON comments(post_id);"
       ],
       "confidence": 0.8,
-      "id": "f-0067",
+      "id": "f-0042",
       "risk_score": 6.4,
       "severity": "high",
       "risk_factors": []
@@ -1461,7 +1211,126 @@
         "CREATE INDEX idx_comments_author_id ON comments(author_id);"
       ],
       "confidence": 0.8,
-      "id": "f-0068",
+      "id": "f-0043",
+      "risk_score": 6.4,
+      "severity": "high",
+      "risk_factors": []
+    },
+    {
+      "type": "raw_sql",
+      "sql_type": "CREATE TABLE",
+      "file": "example_project\\sql\\migrate_data.sql",
+      "line": 4,
+      "evidence": [
+        "CREATE TABLE users_backup AS SELECT * FROM old_users;\nCREATE TABLE posts_backup AS SELECT * FROM old_posts;\n\n-- Migrate users data\nINSERT INTO users (username, email, password, active, created_at)\nSELECT\n    username,\n    email,\n    password_hash,\n    CASE WHEN status = 'active' THEN TRUE ELSE FALSE END,\n    created_at\nFROM old_users\nWHERE deleted = FALSE;\n\n-- Migrate posts data\nINSERT INTO posts (title, content, status, author_id, created_at, updated_at)\nSELECT\n    title,\n    content,\n    CASE\n        WHEN published = TRUE THEN 'published'\n        ELSE 'draft'\n    END,\n    author_id,\n    created_at,\n    updated_at\nFROM old_posts\nWHERE deleted = FALSE;\n\n-- Update user post counts\nUPDATE users\nSET post_count = (\n    SELECT COUNT(*)\n    FROM posts\n    WHERE posts.author_id = users.id\n);\n\n-- Migrate comments\nINSERT INTO comments (content, post_id, author_id, created_at)\nSELECT\n    content,\n    post_id,\n    user_id,\n    created_at\nFROM old_comments\nWHERE moderated = TRUE;\n\n-- Clean up old tables\nDROP TABLE old_users;\nDROP TABLE old_posts;\nDROP TABLE old_comments;\n\n-- Update timestamps\nUPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE updated_at IS NULL;\nUPDATE posts SET updated_at = CURRENT_TIMESTAMP WHERE updated_at IS NULL;\n\n-- Create audit log\nCREATE TABLE migration_log (\n    id SERIAL PRIMARY KEY,\n    action VARCHAR(100) NOT NULL,\n    table_name VARCHAR(50) NOT NULL,\n    records_affected INTEGER DEFAULT 0,\n    executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nINSERT INTO migration_log (action, table_name, records_affected) VALUES\n('MIGRATE', 'users', (SELECT COUNT(*) FROM users)),\n('MIGRATE', 'posts', (SELECT COUNT(*) FROM posts)),\n('MIGRATE', 'comments', (SELECT COUNT(*) FROM comments));\n"
+      ],
+      "confidence": 0.8,
+      "description": "Complex raw SQL query spanning multiple operations. This migration file contains advanced database logic that may benefit from ORM migration.",
+      "id": "f-0044",
+      "usage_context": {
+        "sql_complexity": "high",
+        "has_parameters": false,
+        "is_dynamic": true
+      },
+      "risk_score": 10,
+      "severity": "critical",
+      "risk_factors": [
+        "destructive_operation",
+        "inefficient_query"
+      ]
+    },
+    {
+      "type": "schema_change",
+      "change_type": "create_table",
+      "table_name": "users_backup",
+      "description": "Schema Change found in migration file. This database-related artifact should be reviewed for security and best practices.",
+      "file": "example_project\\sql\\migrate_data.sql",
+      "line": 4,
+      "evidence": [
+        "CREATE TABLE users_backup AS SELECT * FROM old_users;"
+      ],
+      "confidence": 0.8,
+      "id": "f-0045",
+      "risk_score": 6.4,
+      "severity": "high",
+      "risk_factors": []
+    },
+    {
+      "type": "schema_change",
+      "change_type": "create_table",
+      "table_name": "posts_backup",
+      "description": "Schema Change found in migration file. This database-related artifact should be reviewed for security and best practices.",
+      "file": "example_project\\sql\\migrate_data.sql",
+      "line": 5,
+      "evidence": [
+        "CREATE TABLE posts_backup AS SELECT * FROM old_posts;"
+      ],
+      "confidence": 0.8,
+      "id": "f-0046",
+      "risk_score": 6.4,
+      "severity": "high",
+      "risk_factors": []
+    },
+    {
+      "type": "schema_change",
+      "change_type": "drop_table",
+      "table_name": "old_users",
+      "description": "Schema Change found in migration file. This database-related artifact should be reviewed for security and best practices.",
+      "file": "example_project\\sql\\migrate_data.sql",
+      "line": 52,
+      "evidence": [
+        "DROP TABLE old_users;"
+      ],
+      "confidence": 0.8,
+      "id": "f-0047",
+      "risk_score": 6.4,
+      "severity": "high",
+      "risk_factors": []
+    },
+    {
+      "type": "schema_change",
+      "change_type": "drop_table",
+      "table_name": "old_posts",
+      "description": "Schema Change found in migration file. This database-related artifact should be reviewed for security and best practices.",
+      "file": "example_project\\sql\\migrate_data.sql",
+      "line": 53,
+      "evidence": [
+        "DROP TABLE old_posts;"
+      ],
+      "confidence": 0.8,
+      "id": "f-0048",
+      "risk_score": 6.4,
+      "severity": "high",
+      "risk_factors": []
+    },
+    {
+      "type": "schema_change",
+      "change_type": "drop_table",
+      "table_name": "old_comments",
+      "description": "Schema Change found in migration file. This database-related artifact should be reviewed for security and best practices.",
+      "file": "example_project\\sql\\migrate_data.sql",
+      "line": 54,
+      "evidence": [
+        "DROP TABLE old_comments;"
+      ],
+      "confidence": 0.8,
+      "id": "f-0049",
+      "risk_score": 6.4,
+      "severity": "high",
+      "risk_factors": []
+    },
+    {
+      "type": "schema_change",
+      "change_type": "create_table",
+      "table_name": "migration_log",
+      "description": "Schema Change found in migration file. This database-related artifact should be reviewed for security and best practices.",
+      "file": "example_project\\sql\\migrate_data.sql",
+      "line": 61,
+      "evidence": [
+        "CREATE TABLE migration_log ("
+      ],
+      "confidence": 0.8,
+      "id": "f-0050",
       "risk_score": 6.4,
       "severity": "high",
       "risk_factors": []
@@ -1477,7 +1346,7 @@
       "confidence": 0.9,
       "function": "migrate_user_data",
       "description": "Raw Sql found in migration file with high confidence. This database-related artifact should be reviewed for security and best practices.",
-      "id": "f-0069",
+      "id": "f-0051",
       "usage_context": {
         "sql_complexity": "low",
         "has_parameters": false,
@@ -1495,16 +1364,16 @@
       "file": "example_project\\scripts\\migrate_data.py",
       "line": 23,
       "evidence": [
-        "\n            INSERT INTO users (username, email, first_name, last_name, date_joined)\n            SEL..."
+        "\n            INSERT INTO users (username, email, first_name, last_name, date_joined)\n            SELECT username, email, fname, lname, created_at\n            FROM old_users\n            WHERE active = 1\n        "
       ],
       "confidence": 0.9,
       "function": "migrate_user_data",
       "description": "Raw SQL INSERT statement in migration file. This operation adds data to database tables - ensure proper input validation to prevent SQL injection.",
-      "id": "f-0070",
+      "id": "f-0052",
       "usage_context": {
         "sql_complexity": "medium",
         "has_parameters": false,
-        "is_dynamic": false
+        "is_dynamic": true
       },
       "risk_score": 6.3,
       "severity": "high",
@@ -1516,16 +1385,16 @@
       "file": "example_project\\scripts\\migrate_data.py",
       "line": 31,
       "evidence": [
-        "\n            UPDATE users\n            SET post_count = (\n                SELECT COUNT(*)\n           ..."
+        "\n            UPDATE users\n            SET post_count = (\n                SELECT COUNT(*)\n                FROM posts\n                WHERE posts.author_id = users.id\n            )\n        "
       ],
       "confidence": 0.9,
       "function": "migrate_user_data",
       "description": "Raw SQL UPDATE query in migration file. This modifies existing data in database tables - verify update conditions are properly sanitized.",
-      "id": "f-0071",
+      "id": "f-0053",
       "usage_context": {
         "sql_complexity": "low",
         "has_parameters": false,
-        "is_dynamic": false
+        "is_dynamic": true
       },
       "risk_score": 6.3,
       "severity": "high",
@@ -1542,7 +1411,7 @@
       "confidence": 0.9,
       "function": "migrate_user_data",
       "description": "Raw Sql found in migration file with high confidence. This database-related artifact should be reviewed for security and best practices.",
-      "id": "f-0072",
+      "id": "f-0054",
       "usage_context": {
         "sql_complexity": "low",
         "has_parameters": false,
@@ -1564,7 +1433,7 @@
       ],
       "confidence": 0.85,
       "description": "Raw Sql found in migration file with high confidence. This database-related artifact should be reviewed for security and best practices.",
-      "id": "f-0073",
+      "id": "f-0055",
       "usage_context": {
         "sql_complexity": "low",
         "has_parameters": false,
@@ -1582,15 +1451,15 @@
       "file": "example_project\\scripts\\migrate_data.py",
       "line": 23,
       "evidence": [
-        "\n            INSERT INTO users (username, email, first_name, last_name, date_joined)\n            SEL..."
+        "\n            INSERT INTO users (username, email, first_name, last_name, date_joined)\n            SELECT username, email, fname, lname, created_at\n            FROM old_users\n            WHERE active = 1\n        "
       ],
       "confidence": 0.85,
       "description": "Raw SQL INSERT statement in migration file. This operation adds data to database tables - ensure proper input validation to prevent SQL injection.",
-      "id": "f-0074",
+      "id": "f-0056",
       "usage_context": {
         "sql_complexity": "medium",
         "has_parameters": false,
-        "is_dynamic": false
+        "is_dynamic": true
       },
       "risk_score": 5.95,
       "severity": "medium",
@@ -1602,15 +1471,15 @@
       "file": "example_project\\scripts\\migrate_data.py",
       "line": 31,
       "evidence": [
-        "\n            UPDATE users\n            SET post_count = (\n                SELECT COUNT(*)\n           ..."
+        "\n            UPDATE users\n            SET post_count = (\n                SELECT COUNT(*)\n                FROM posts\n                WHERE posts.author_id = users.id\n            )\n        "
       ],
       "confidence": 0.85,
       "description": "Raw SQL UPDATE query in migration file. This modifies existing data in database tables - verify update conditions are properly sanitized.",
-      "id": "f-0075",
+      "id": "f-0057",
       "usage_context": {
         "sql_complexity": "low",
         "has_parameters": false,
-        "is_dynamic": false
+        "is_dynamic": true
       },
       "risk_score": 5.95,
       "severity": "medium",
@@ -1622,19 +1491,19 @@
       "file": "example_project\\scripts\\migrate_data.py",
       "line": 47,
       "evidence": [
-        "\n            UPDATE users\n            SET email = CONCAT(email, '.', id)\n            WHERE email IN ..."
+        "\n            UPDATE users\n            SET email = CONCAT(email, '.', id)\n            WHERE email IN (\n                SELECT email\n                FROM users\n                GROUP BY email\n                HAVING COUNT(*) > 1\n            )\n        "
       ],
       "confidence": 0.9,
       "function": "fix_duplicate_emails",
       "description": "Raw SQL UPDATE query in migration file. This modifies existing data in database tables - verify update conditions are properly sanitized.",
-      "id": "f-0076",
+      "id": "f-0058",
       "usage_context": {
-        "sql_complexity": "low",
+        "sql_complexity": "medium",
         "has_parameters": false,
-        "is_dynamic": false
+        "is_dynamic": true
       },
-      "risk_score": 6.3,
-      "severity": "high",
+      "risk_score": 8.19,
+      "severity": "critical",
       "risk_factors": []
     },
     {
@@ -1643,18 +1512,18 @@
       "file": "example_project\\scripts\\migrate_data.py",
       "line": 47,
       "evidence": [
-        "\n            UPDATE users\n            SET email = CONCAT(email, '.', id)\n            WHERE email IN ..."
+        "\n            UPDATE users\n            SET email = CONCAT(email, '.', id)\n            WHERE email IN (\n                SELECT email\n                FROM users\n                GROUP BY email\n                HAVING COUNT(*) > 1\n            )\n        "
       ],
       "confidence": 0.85,
       "description": "Raw SQL UPDATE query in migration file. This modifies existing data in database tables - verify update conditions are properly sanitized.",
-      "id": "f-0077",
+      "id": "f-0059",
       "usage_context": {
-        "sql_complexity": "low",
+        "sql_complexity": "medium",
         "has_parameters": false,
-        "is_dynamic": false
+        "is_dynamic": true
       },
-      "risk_score": 5.95,
-      "severity": "medium",
+      "risk_score": 7.74,
+      "severity": "high",
       "risk_factors": []
     },
     {
@@ -1663,181 +1532,22 @@
       "file": "example_project\\scripts\\migrate_data.py",
       "line": 18,
       "evidence": [
-        "CREATE TABLE I..."
+        "CREATE TABLE IF NOT EXISTS user_backup AS\n            SELECT * FROM old_users\n        \"\"\")\n\n        # Migrate data\n        cursor.execute(\"\"\"\n            INSERT INTO users (username, email, first_name, last_name, date_joined)\n            SELECT username, email, fname, lname, created_at\n            FROM old_users\n            WHERE active = 1\n        \"\"\")\n\n        # Update post counts\n        cursor.execute(\"\"\"\n            UPDATE users\n            SET post_count = (\n                SELECT COUNT(*)\n                FROM posts\n                WHERE posts.author_id = users.id\n            )\n        \"\"\")\n\n        # Clean up\n        cursor.execute(\"DROP TABLE IF EXISTS old_users\")\n\ndef fix_duplicate_emails():\n    \"\"\"Fix duplicate email addresses.\"\"\"\n\n    with connection.cursor() as cursor:\n        cursor.execute(\"\"\"\n            UPDATE users\n            SET email = CONCAT(email, '.', id)\n            WHERE email IN (\n                SELECT email\n                FROM users\n                GROUP BY email\n                HAVING COUNT(*) > 1\n            )\n        \"\"\")\n\nif __name__ == '__main__':\n    migrate_user_data()\n    fix_duplicate_emails()\n    print(\"Migration completed!\")\n"
       ],
       "confidence": 0.8,
-      "description": "Raw Sql found in migration file. This database-related artifact should be reviewed for security and best practices.",
-      "id": "f-0078",
+      "description": "Complex raw SQL query spanning multiple operations. This migration file contains advanced database logic that may benefit from ORM migration.",
+      "id": "f-0060",
       "usage_context": {
-        "sql_complexity": "low",
+        "sql_complexity": "high",
         "has_parameters": false,
-        "is_dynamic": false
+        "is_dynamic": true
       },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\scripts\\migrate_data.py",
-      "line": 19,
-      "evidence": [
-        "SELECT *..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in migration file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0079",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
+      "risk_score": 9.88,
+      "severity": "critical",
       "risk_factors": [
+        "destructive_operation",
         "inefficient_query"
       ]
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "INSERT",
-      "file": "example_project\\scripts\\migrate_data.py",
-      "line": 24,
-      "evidence": [
-        "INSERT I..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL INSERT statement in migration file. This operation adds data to database tables - ensure proper input validation to prevent SQL injection.",
-      "id": "f-0080",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\scripts\\migrate_data.py",
-      "line": 25,
-      "evidence": [
-        "SELECT u..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in migration file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0081",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "UPDATE",
-      "file": "example_project\\scripts\\migrate_data.py",
-      "line": 30,
-      "evidence": [
-        "Update p..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL UPDATE query in migration file. This modifies existing data in database tables - verify update conditions are properly sanitized.",
-      "id": "f-0082",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "UPDATE",
-      "file": "example_project\\scripts\\migrate_data.py",
-      "line": 32,
-      "evidence": [
-        "UPDATE u..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL UPDATE query in migration file. This modifies existing data in database tables - verify update conditions are properly sanitized.",
-      "id": "f-0083",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\scripts\\migrate_data.py",
-      "line": 34,
-      "evidence": [
-        "SELECT C..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in migration file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0084",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "UPDATE",
-      "file": "example_project\\scripts\\migrate_data.py",
-      "line": 48,
-      "evidence": [
-        "UPDATE u..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL UPDATE query in migration file. This modifies existing data in database tables - verify update conditions are properly sanitized.",
-      "id": "f-0085",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\scripts\\migrate_data.py",
-      "line": 51,
-      "evidence": [
-        "SELECT e..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in migration file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0086",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
     },
     {
       "type": "schema_change",
@@ -1850,7 +1560,7 @@
         "CREATE TABLE IF NOT EXISTS user_backup AS"
       ],
       "confidence": 0.8,
-      "id": "f-0087",
+      "id": "f-0061",
       "risk_score": 6.4,
       "severity": "high",
       "risk_factors": []
@@ -1866,527 +1576,7 @@
         "cursor.execute(\"DROP TABLE IF EXISTS old_users\")"
       ],
       "confidence": 0.8,
-      "id": "f-0088",
-      "risk_score": 6.4,
-      "severity": "high",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "CREATE TABLE",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 4,
-      "evidence": [
-        "CREATE TABLE u..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw Sql found in migration file. This database-related artifact should be reviewed for security and best practices.",
-      "id": "f-0089",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 4,
-      "evidence": [
-        "SELECT *..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in migration file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0090",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": [
-        "inefficient_query"
-      ]
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "CREATE TABLE",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 5,
-      "evidence": [
-        "CREATE TABLE p..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw Sql found in migration file. This database-related artifact should be reviewed for security and best practices.",
-      "id": "f-0091",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 5,
-      "evidence": [
-        "SELECT *..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in migration file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0092",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": [
-        "inefficient_query"
-      ]
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "INSERT",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 8,
-      "evidence": [
-        "INSERT I..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL INSERT statement in migration file. This operation adds data to database tables - ensure proper input validation to prevent SQL injection.",
-      "id": "f-0093",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 9,
-      "evidence": [
-        "SELECT\n    u..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in migration file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0094",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "INSERT",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 19,
-      "evidence": [
-        "INSERT I..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL INSERT statement in migration file. This operation adds data to database tables - ensure proper input validation to prevent SQL injection.",
-      "id": "f-0095",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 20,
-      "evidence": [
-        "SELECT\n    t..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in migration file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0096",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "UPDATE",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 33,
-      "evidence": [
-        "Update u..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL UPDATE query in migration file. This modifies existing data in database tables - verify update conditions are properly sanitized.",
-      "id": "f-0097",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "UPDATE",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 34,
-      "evidence": [
-        "UPDATE u..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL UPDATE query in migration file. This modifies existing data in database tables - verify update conditions are properly sanitized.",
-      "id": "f-0098",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 36,
-      "evidence": [
-        "SELECT C..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in migration file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0099",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "INSERT",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 42,
-      "evidence": [
-        "INSERT I..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL INSERT statement in migration file. This operation adds data to database tables - ensure proper input validation to prevent SQL injection.",
-      "id": "f-0100",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 43,
-      "evidence": [
-        "SELECT\n    c..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in migration file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0101",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "UPDATE",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 56,
-      "evidence": [
-        "Update t..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL UPDATE query in migration file. This modifies existing data in database tables - verify update conditions are properly sanitized.",
-      "id": "f-0102",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "UPDATE",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 57,
-      "evidence": [
-        "UPDATE u..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL UPDATE query in migration file. This modifies existing data in database tables - verify update conditions are properly sanitized.",
-      "id": "f-0103",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "UPDATE",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 58,
-      "evidence": [
-        "UPDATE p..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL UPDATE query in migration file. This modifies existing data in database tables - verify update conditions are properly sanitized.",
-      "id": "f-0104",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "CREATE TABLE",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 61,
-      "evidence": [
-        "CREATE TABLE m..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw Sql found in migration file. This database-related artifact should be reviewed for security and best practices.",
-      "id": "f-0105",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "INSERT",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 69,
-      "evidence": [
-        "INSERT I..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL INSERT statement in migration file. This operation adds data to database tables - ensure proper input validation to prevent SQL injection.",
-      "id": "f-0106",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 70,
-      "evidence": [
-        "SELECT C..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in migration file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0107",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 71,
-      "evidence": [
-        "SELECT C..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in migration file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0108",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "raw_sql",
-      "sql_type": "SELECT",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 72,
-      "evidence": [
-        "SELECT C..."
-      ],
-      "confidence": 0.8,
-      "description": "Raw SQL SELECT query found in migration file. This query retrieves data from database tables and should be reviewed for potential SQL injection vulnerabilities.",
-      "id": "f-0109",
-      "usage_context": {
-        "sql_complexity": "low",
-        "has_parameters": false,
-        "is_dynamic": false
-      },
-      "risk_score": 5.6,
-      "severity": "medium",
-      "risk_factors": []
-    },
-    {
-      "type": "schema_change",
-      "change_type": "create_table",
-      "table_name": "users_backup",
-      "description": "Schema Change found in migration file. This database-related artifact should be reviewed for security and best practices.",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 4,
-      "evidence": [
-        "CREATE TABLE users_backup AS SELECT * FROM old_users;"
-      ],
-      "confidence": 0.8,
-      "id": "f-0110",
-      "risk_score": 6.4,
-      "severity": "high",
-      "risk_factors": []
-    },
-    {
-      "type": "schema_change",
-      "change_type": "create_table",
-      "table_name": "posts_backup",
-      "description": "Schema Change found in migration file. This database-related artifact should be reviewed for security and best practices.",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 5,
-      "evidence": [
-        "CREATE TABLE posts_backup AS SELECT * FROM old_posts;"
-      ],
-      "confidence": 0.8,
-      "id": "f-0111",
-      "risk_score": 6.4,
-      "severity": "high",
-      "risk_factors": []
-    },
-    {
-      "type": "schema_change",
-      "change_type": "drop_table",
-      "table_name": "old_users",
-      "description": "Schema Change found in migration file. This database-related artifact should be reviewed for security and best practices.",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 52,
-      "evidence": [
-        "DROP TABLE old_users;"
-      ],
-      "confidence": 0.8,
-      "id": "f-0112",
-      "risk_score": 6.4,
-      "severity": "high",
-      "risk_factors": []
-    },
-    {
-      "type": "schema_change",
-      "change_type": "drop_table",
-      "table_name": "old_posts",
-      "description": "Schema Change found in migration file. This database-related artifact should be reviewed for security and best practices.",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 53,
-      "evidence": [
-        "DROP TABLE old_posts;"
-      ],
-      "confidence": 0.8,
-      "id": "f-0113",
-      "risk_score": 6.4,
-      "severity": "high",
-      "risk_factors": []
-    },
-    {
-      "type": "schema_change",
-      "change_type": "drop_table",
-      "table_name": "old_comments",
-      "description": "Schema Change found in migration file. This database-related artifact should be reviewed for security and best practices.",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 54,
-      "evidence": [
-        "DROP TABLE old_comments;"
-      ],
-      "confidence": 0.8,
-      "id": "f-0114",
-      "risk_score": 6.4,
-      "severity": "high",
-      "risk_factors": []
-    },
-    {
-      "type": "schema_change",
-      "change_type": "create_table",
-      "table_name": "migration_log",
-      "description": "Schema Change found in migration file. This database-related artifact should be reviewed for security and best practices.",
-      "file": "example_project\\sql\\migrate_data.sql",
-      "line": 61,
-      "evidence": [
-        "CREATE TABLE migration_log ("
-      ],
-      "confidence": 0.8,
-      "id": "f-0115",
+      "id": "f-0062",
       "risk_score": 6.4,
       "severity": "high",
       "risk_factors": []
@@ -2401,7 +1591,7 @@
       ],
       "confidence": 0.95,
       "description": "Hardcoded postgresql database connection string found in configuration file. This exposes sensitive connection details and should be moved to environment variables or configuration files.",
-      "id": "f-0116",
+      "id": "f-0063",
       "usage_context": {
         "potential_models": 0,
         "potential_queries": 0,
@@ -2424,7 +1614,7 @@
       "confidence": 0.8,
       "severity": "critical",
       "description": "Secret found in configuration file. This database-related artifact should be reviewed for security and best practices.",
-      "id": "f-0117",
+      "id": "f-0064",
       "risk_score": 10,
       "risk_factors": [
         "credential_exposure"
@@ -2441,7 +1631,7 @@
       "confidence": 0.8,
       "severity": "critical",
       "description": "API key '********' found in configuration file. This credential provides access to external services and should be stored securely.",
-      "id": "f-0118",
+      "id": "f-0065",
       "risk_score": 10,
       "risk_factors": [
         "credential_exposure"
@@ -2458,7 +1648,7 @@
       "confidence": 0.9,
       "severity": "critical",
       "description": "JSON Web Token '********' present in configuration file. This authentication token may contain sensitive user information.",
-      "id": "f-0119",
+      "id": "f-0066",
       "risk_score": 10,
       "risk_factors": [
         "credential_exposure"
@@ -2475,7 +1665,7 @@
       "confidence": 0.6,
       "severity": "critical",
       "description": "Secret found in configuration file. This database-related artifact should be reviewed for security and best practices.",
-      "id": "f-0120",
+      "id": "f-0067",
       "risk_score": 10,
       "risk_factors": [
         "low_confidence",
@@ -2493,7 +1683,7 @@
       "confidence": 0.95,
       "severity": "critical",
       "description": "AWS access key ID found in configuration file. This credential provides access to AWS services and should use IAM roles instead. Immediate action required: This credential exposure poses a significant security risk and should be addressed immediately.",
-      "id": "f-0121",
+      "id": "f-0068",
       "risk_score": 10,
       "risk_factors": [
         "credential_exposure"
@@ -2510,7 +1700,7 @@
       "confidence": 0.95,
       "severity": "critical",
       "description": "AWS secret access key found in configuration file. This is part of AWS credentials and must be stored in secure credential management systems. Immediate action required: This credential exposure poses a significant security risk and should be addressed immediately.",
-      "id": "f-0122",
+      "id": "f-0069",
       "risk_score": 10,
       "risk_factors": [
         "credential_exposure"
@@ -2527,7 +1717,7 @@
       "confidence": 0.6,
       "severity": "critical",
       "description": "Secret found in configuration file. This database-related artifact should be reviewed for security and best practices.",
-      "id": "f-0123",
+      "id": "f-0070",
       "risk_score": 10,
       "risk_factors": [
         "low_confidence",
@@ -2545,7 +1735,7 @@
       "confidence": 0.7,
       "severity": "critical",
       "description": "Password credential '********' detected in configuration file. This authentication secret must be protected and never committed to version control.",
-      "id": "f-0124",
+      "id": "f-0071",
       "risk_score": 10,
       "risk_factors": [
         "credential_exposure"
@@ -2562,7 +1752,7 @@
       "confidence": 0.8,
       "severity": "critical",
       "description": "Secret found in configuration file. This database-related artifact should be reviewed for security and best practices.",
-      "id": "f-0125",
+      "id": "f-0072",
       "risk_score": 10,
       "risk_factors": [
         "credential_exposure"
@@ -2579,7 +1769,7 @@
       "confidence": 0.7,
       "severity": "critical",
       "description": "Password credential '********' detected in configuration file. This authentication secret must be protected and never committed to version control.",
-      "id": "f-0126",
+      "id": "f-0073",
       "risk_score": 10,
       "risk_factors": [
         "credential_exposure"
@@ -2596,7 +1786,7 @@
       "confidence": 0.7,
       "severity": "critical",
       "description": "Password credential '********' detected in configuration file. This authentication secret must be protected and never committed to version control.",
-      "id": "f-0127",
+      "id": "f-0074",
       "risk_score": 10,
       "risk_factors": [
         "credential_exposure"
@@ -2613,7 +1803,7 @@
       "confidence": 0.7,
       "severity": "critical",
       "description": "Password credential '********' detected in configuration file. This authentication secret must be protected and never committed to version control.",
-      "id": "f-0128",
+      "id": "f-0075",
       "risk_score": 10,
       "risk_factors": [
         "credential_exposure"
