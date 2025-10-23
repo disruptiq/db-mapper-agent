@@ -26,6 +26,18 @@ LANGUAGE_EXTENSIONS = {
     "terraform": [".tf", ".tfvars"],
 }
 
+# Default exclude patterns for common non-scannable files
+DEFAULT_EXCLUDE_PATTERNS = [
+    "**/*.jpg", "**/*.jpeg", "**/*.png", "**/*.gif", "**/*.bmp", "**/*.tiff",
+    "**/*.exe", "**/*.dll", "**/*.so", "**/*.dylib", "**/*.bin",
+    "**/*.zip", "**/*.tar", "**/*.gz", "**/*.rar", "**/*.7z",
+    "**/*.pdf", "**/*.doc", "**/*.docx", "**/*.xls", "**/*.xlsx",
+    "**/*.mp4", "**/*.avi", "**/*.mov", "**/*.mp3", "**/*.wav",
+    "**/*.pyc", "**/__pycache__/**", "**/.git/**", "**/node_modules/**",
+    "**/venv/**", "**/.venv/**", "**/env/**", "**/.env/**",
+    "**/*.md", "**/*.yaml", "**/*.yml"
+]
+
 
 def _is_git_repo(repo_path: Path) -> bool:
     """Check if the given path is a git repository."""

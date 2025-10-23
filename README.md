@@ -249,7 +249,7 @@ db-mapper scan /path/to/repo --output findings.json
 --output FILE              Output file base name (default: findings)
 --formats json,csv,html,graph  Output formats (default: json)
 --include GLOB             Glob patterns for files to include (e.g., "**/*.py")
---exclude GLOB             Glob patterns for files to exclude (e.g., "**/test/**")
+--exclude GLOB             Glob patterns for files to exclude (e.g., "**/test/**") - additional to default exclusions
 --languages python,js,java,csharp,php,ruby,go,sql  Limit to specific languages
 --plugins PLUGINS          Enable additional detector plugins (future feature)
 --min-confidence FLOAT     Filter results below confidence threshold (default: 0.5)
@@ -338,8 +338,9 @@ include:
   - "**/*.py"
   - "**/*.sql"
 exclude:
-  - "**/node_modules/**"
-  - "**/.venv/**"
+- "**/node_modules/**"
+- "**/.venv/**"
+  # Note: Default exclusions already include common files like images, binaries, etc.
 languages:
   - python
   - javascript

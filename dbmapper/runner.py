@@ -8,7 +8,7 @@ import concurrent.futures
 import threading
 import time
 
-from .scanner import discover_files
+from .scanner import discover_files, DEFAULT_EXCLUDE_PATTERNS
 from .detectors import run_detectors
 from .cross_references import analyze_cross_references
 from .risk_scorer import calculate_risk_scores
@@ -28,7 +28,7 @@ def run_scan(args) -> None:
     formats = args.formats
     min_confidence = args.min_confidence
     include_patterns = args.include or ["**/*"]
-    exclude_patterns = args.exclude or []
+    exclude_patterns = DEFAULT_EXCLUDE_PATTERNS + (args.exclude or [])
     languages = args.languages
     threads = args.threads
 

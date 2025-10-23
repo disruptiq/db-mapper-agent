@@ -83,17 +83,19 @@ def process_single_file(file_path: Path) -> List[Dict[str, Any]]:
                 "confidence": 0.95,
             })
 
-    # Raw SQL detector
-    for match in SQL_PATTERN.finditer(content):
-        sql_type = match.group(1).upper()
-        findings.append({
-            "type": "raw_sql",
-            "sql_type": sql_type,
-            "file": str(file_path),
-            "line": content[:match.start()].count('\n') + 1,
-            "evidence": [match.group(0)[:100] + "..."],  # Truncate long SQL
-            "confidence": 0.8,
-        })
+    # Raw SQL detector - skip config files that might contain SQL as data
+    config_extensions = {'.yaml', '.yml', '.json', '.xml', '.ini', '.cfg', '.conf', '.env', '.toml', '.properties'}
+    if file_path.suffix.lower() not in config_extensions:
+        for match in SQL_PATTERN.finditer(content):
+            sql_type = match.group(1).upper()
+            findings.append({
+                "type": "raw_sql",
+                "sql_type": sql_type,
+                "file": str(file_path),
+                "line": content[:match.start()].count('\n') + 1,
+                "evidence": [match.group(0)[:100] + "..."],  # Truncate long SQL
+                "confidence": 0.8,
+            })
 
     # Migration detection
     migration_findings = detect_migrations(content, file_path)

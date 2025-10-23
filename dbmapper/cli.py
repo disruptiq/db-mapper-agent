@@ -52,9 +52,9 @@ def main():
     )
 
     parser.add_argument(
-        "--exclude",
-        nargs="+",
-        help="Glob patterns for files to exclude",
+    "--exclude",
+    nargs="+",
+    help="Glob patterns for files to exclude (in addition to default exclusions for images, binaries, etc.)",
     )
 
     parser.add_argument(
