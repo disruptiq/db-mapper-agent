@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: myapp
+      POSTGRES_USER: dbuser
+      POSTGRES_PASSWORD: dbpassword123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d
+    networks:
+      - backend
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: analytics
+      MYSQL_USER: analytics
+      MYSQL_PASSWORD: analytics123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - backend
+
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+
+  mongo:
+    image: mongo:5.0
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: myapp
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - backend
+
+  app:
+    build: ..
+    environment:
+      DATABASE_URL: postgresql://dbuser:dbpassword123@postgres:5432/myapp
+      REDIS_URL: redis://redis:6379/0
+      MONGODB_URL: mongodb://admin:password123@mongo:27017/myapp
+    depends_on:
+      - postgres
+      - redis
+      - mongo
+    ports:
+      - "8000:8000"
+    networks:
+      - backend
+
+volumes:
+  postgres_data:
+  mysql_data:
+  redis_data:
+  mongo_data:
+
+networks:
+  backend:
+    driver: bridge
