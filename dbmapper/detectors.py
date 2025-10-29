@@ -137,6 +137,7 @@ def run_detectors(files: List[Path], threads: int = 4) -> List[Dict[str, Any]]:
         List of findings
     """
     findings = []
+    future_to_file = {}
 
     try:
         if threads > 1:
@@ -161,5 +162,9 @@ def run_detectors(files: List[Path], threads: int = 4) -> List[Dict[str, Any]]:
 
         return findings
     except KeyboardInterrupt:
-        print("Scan interrupted during detector processing. Partial results may be incomplete.", file=sys.stderr)
+        print("Scan interrupted during detector processing. Cancelling remaining tasks...", file=sys.stderr)
+        # Cancel any pending futures
+        for future in future_to_file.values():
+            if not future.done():
+                future.cancel()
         raise

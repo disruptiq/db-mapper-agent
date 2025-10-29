@@ -236,16 +236,14 @@ Comprehensive multi-language support:
 **Basic Scan**
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .
-db-mapper scan /path/to/repo --output findings.json
+# No installation required - uses only Python standard library
+python -m dbmapper /path/to/repo --output findings.json
 ```
 
 **Flags**
 
 ```
---path PATH                Repository path (required)
+path                       Repository path (required)
 --output FILE              Output file base name (default: findings)
 --formats json,csv,html,graph  Output formats (default: json)
 --include GLOB             Glob patterns for files to include (e.g., "**/*.py")

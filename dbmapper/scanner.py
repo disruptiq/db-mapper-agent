@@ -39,20 +39,6 @@ DEFAULT_EXCLUDE_PATTERNS = [
 ]
 
 
-def _is_git_repo(repo_path: Path) -> bool:
-    """Check if the given path is a git repository."""
-    try:
-        result = subprocess.run(
-            ['git', 'rev-parse', '--git-dir'],
-            cwd=repo_path,
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
-        return result.returncode == 0
-    except (subprocess.SubprocessError, FileNotFoundError):
-        return False
-
 
 def _get_git_files(repo_path: Path) -> List[Path]:
     """Get all files tracked by git in the repository."""
@@ -116,20 +102,13 @@ def discover_files(
     allowed_extensions.update(LANGUAGE_EXTENSIONS["docker"])
     allowed_extensions.update(LANGUAGE_EXTENSIONS["terraform"])
 
-    # Try git-based discovery first (faster and respects .gitignore)
+    # Use git ls-files for faster discovery (respects .gitignore and is efficient)
     all_files = []
-    if _is_git_repo(repo_path):
-        git_files = _get_git_files(repo_path)
-        if git_files:
-            all_files = git_files
-        else:
-            # Git repo exists but no tracked files, fall back to filesystem traversal
-            for pattern in include_patterns:
-                for path in repo_path.rglob(pattern):
-                    if path.is_file():
-                        all_files.append(path)
+    git_files = _get_git_files(repo_path)
+    if git_files:
+        all_files = git_files
     else:
-        # Not a git repo, use filesystem traversal
+        # Fallback to filesystem traversal if git ls-files fails
         for pattern in include_patterns:
             for path in repo_path.rglob(pattern):
                 if path.is_file():
