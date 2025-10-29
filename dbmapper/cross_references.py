@@ -213,8 +213,8 @@ def analyze_cross_references(findings: List[Dict[str, Any]]) -> List[Dict[str, A
         file_findings[file_path][finding_type].append(finding)
         global_findings_by_type[finding_type].append(finding)
 
-    # Determine number of threads to use (use available CPU cores)
-    num_threads = min(len(findings), os.cpu_count() or 4)
+    # Determine number of threads to use (use more workers for better performance)
+    num_threads = min(len(findings), max(os.cpu_count() or 4, 8))
     if num_threads < 2:
         # For small number of findings, process sequentially
         return _analyze_cross_references_sequential(findings, file_findings, global_findings_by_type)
@@ -228,7 +228,8 @@ def analyze_cross_references(findings: List[Dict[str, Any]]) -> List[Dict[str, A
     def process_chunk(chunk):
         return [_enhance_single_finding(finding, file_findings, global_findings_by_type) for finding in chunk]
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
+    # Use ThreadPoolExecutor for I/O-bound cross-reference operations
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(num_threads, 32)) as executor:
         futures = [executor.submit(process_chunk, chunk) for chunk in finding_chunks]
         for future in concurrent.futures.as_completed(futures):
             enhanced_findings.extend(future.result())
