@@ -8,7 +8,18 @@ from typing import List, Dict, Any
 
 # Migration file patterns by framework
 MIGRATION_PATTERNS = {
-    "django": {
+"prisma": {
+"file_patterns": [r"prisma/migrations/.*\.sql$", r"packages/prisma/migrations/.*\.sql$", r"migrations/.*\.sql$"],
+"content_patterns": [
+(r'CREATE\s+TABLE', "create_table", 0.9),
+(r'ALTER\s+TABLE', "alter_table", 0.9),
+(r'DROP\s+TABLE', "drop_table", 0.9),
+(r'INSERT\s+INTO', "insert_data", 0.8),
+(r'UPDATE\s+.*SET', "update_data", 0.8),
+(r'DELETE\s+FROM', "delete_data", 0.8),
+]
+},
+"django": {
         "file_patterns": [r"migrations/.*\.py$", r".*migrate.*\.py$"],
         "content_patterns": [
             (r'def\s+migrate.*?\(', "migration_function", 0.9),
@@ -94,6 +105,12 @@ def detect_migrations(content: str, file_path: Path) -> List[Dict[str, Any]]:
 def _identify_framework(file_path: Path) -> str:
     """Identify the migration framework based on file path and structure."""
     path_str = str(file_path)
+
+    # Prisma (check for SQL migration files in migrations directory)
+    if ('migrations' in path_str or 'packages/prisma/migrations' in path_str) and file_path.suffix == '.sql':
+        # Additional check for timestamped migration files
+        if re.match(r'.*\d{14}.*\.sql$', str(file_path)) or 'migration' in str(file_path).lower():
+            return "prisma"
 
     # Django
     if 'migrations' in path_str and file_path.suffix == '.py':

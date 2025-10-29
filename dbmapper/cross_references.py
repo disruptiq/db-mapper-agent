@@ -2,43 +2,13 @@
 """Cross-reference analysis module for finding relationships between database artifacts."""
 
 import re
+import os
 from pathlib import Path
 from typing import List, Dict, Any, Set
 from collections import defaultdict
 
 
-def analyze_cross_references(findings: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Analyze relationships between findings and add cross-reference information."""
-    enhanced_findings = []
 
-    # Group findings by file and type
-    file_findings = defaultdict(lambda: defaultdict(list))
-    # Also group by type globally for efficient cross-file lookups
-    global_findings_by_type = defaultdict(list)
-
-    for finding in findings:
-        file_path = finding["file"]
-        finding_type = finding["type"]
-        file_findings[file_path][finding_type].append(finding)
-        global_findings_by_type[finding_type].append(finding)
-
-    # Analyze relationships
-    for finding in findings:
-        enhanced_finding = finding.copy()
-
-        # Add relationship information
-        relationships = _find_relationships(finding, file_findings, global_findings_by_type)
-        if relationships:
-            enhanced_finding["relationships"] = relationships
-
-        # Add usage context
-        context = _analyze_usage_context(finding, file_findings)
-        if context:
-            enhanced_finding["usage_context"] = context
-
-        enhanced_findings.append(enhanced_finding)
-
-    return enhanced_findings
 
 
 def _find_relationships(finding: Dict[str, Any], file_findings: Dict[str, Dict[str, List[Dict[str, Any]]]], global_findings_by_type: Dict[str, List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
@@ -227,4 +197,65 @@ def _calculate_risk_level(finding: Dict[str, Any], query_count: int, connection_
         return "low"
 
 
-# Import moved to top
+import concurrent.futures
+import math
+
+
+def analyze_cross_references(findings: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Analyze relationships between findings and add cross-reference information."""
+    # Group findings by file and type for efficient lookups
+    file_findings = defaultdict(lambda: defaultdict(list))
+    global_findings_by_type = defaultdict(list)
+
+    for finding in findings:
+        file_path = finding["file"]
+        finding_type = finding["type"]
+        file_findings[file_path][finding_type].append(finding)
+        global_findings_by_type[finding_type].append(finding)
+
+    # Determine number of threads to use (use available CPU cores)
+    num_threads = min(len(findings), os.cpu_count() or 4)
+    if num_threads < 2:
+        # For small number of findings, process sequentially
+        return _analyze_cross_references_sequential(findings, file_findings, global_findings_by_type)
+
+    # Split findings into chunks for parallel processing
+    chunk_size = math.ceil(len(findings) / num_threads)
+    finding_chunks = [findings[i:i + chunk_size] for i in range(0, len(findings), chunk_size)]
+
+    enhanced_findings = []
+
+    def process_chunk(chunk):
+        return [_enhance_single_finding(finding, file_findings, global_findings_by_type) for finding in chunk]
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
+        futures = [executor.submit(process_chunk, chunk) for chunk in finding_chunks]
+        for future in concurrent.futures.as_completed(futures):
+            enhanced_findings.extend(future.result())
+
+    return enhanced_findings
+
+
+def _analyze_cross_references_sequential(findings: List[Dict[str, Any]], file_findings: Dict[str, Dict[str, List[Dict[str, Any]]]], global_findings_by_type: Dict[str, List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
+    """Sequential version of cross-reference analysis."""
+    enhanced_findings = []
+    for finding in findings:
+        enhanced_findings.append(_enhance_single_finding(finding, file_findings, global_findings_by_type))
+    return enhanced_findings
+
+
+def _enhance_single_finding(finding: Dict[str, Any], file_findings: Dict[str, Dict[str, List[Dict[str, Any]]]], global_findings_by_type: Dict[str, List[Dict[str, Any]]]) -> Dict[str, Any]:
+    """Enhance a single finding with cross-reference information."""
+    enhanced_finding = finding.copy()
+
+    # Add relationship information
+    relationships = _find_relationships(finding, file_findings, global_findings_by_type)
+    if relationships:
+        enhanced_finding["relationships"] = relationships
+
+    # Add usage context
+    context = _analyze_usage_context(finding, file_findings)
+    if context:
+        enhanced_finding["usage_context"] = context
+
+    return enhanced_finding

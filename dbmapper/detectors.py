@@ -28,6 +28,14 @@ def process_single_file(file_path: Path) -> List[Dict[str, Any]]:
     findings = []
 
     try:
+        # Check file size to avoid loading very large files into memory
+        file_size = file_path.stat().st_size
+        max_file_size = 50 * 1024 * 1024  # 50MB limit
+
+        if file_size > max_file_size:
+            # For very large files, skip processing to avoid memory issues
+            return findings
+
         with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
             content = f.read()
             lines = content.splitlines()
@@ -83,9 +91,12 @@ def process_single_file(file_path: Path) -> List[Dict[str, Any]]:
                 "confidence": 0.95,
             })
 
-    # Raw SQL detector - skip config files that might contain SQL as data
+    # Raw SQL detector - skip config files and migration files that might contain SQL as data
     config_extensions = {'.yaml', '.yml', '.json', '.xml', '.ini', '.cfg', '.conf', '.env', '.toml', '.properties'}
-    if file_path.suffix.lower() not in config_extensions:
+    migration_indicators = ['migration', 'migrations', 'flyway', 'alembic', 'prisma']
+    is_migration_file = any(indicator in str(file_path).lower() for indicator in migration_indicators)
+
+    if file_path.suffix.lower() not in config_extensions and not is_migration_file:
         for match in SQL_PATTERN.finditer(content):
             sql_type = match.group(1).upper()
             findings.append({

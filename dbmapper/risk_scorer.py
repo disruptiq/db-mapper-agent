@@ -3,6 +3,9 @@
 
 from typing import Dict, Any, List
 import re
+import concurrent.futures
+import math
+import os
 
 
 class RiskScorer:
@@ -50,31 +53,57 @@ class RiskScorer:
         if context is None:
             context = {}
 
+        # Determine number of threads to use
+        num_threads = min(len(findings), os.cpu_count() or 4)
+        if num_threads < 2:
+            # For small number of findings, process sequentially
+            return self._score_findings_sequential(findings, context)
+
+        # Split findings into chunks for parallel processing
+        chunk_size = math.ceil(len(findings) / num_threads)
+        finding_chunks = [findings[i:i + chunk_size] for i in range(0, len(findings), chunk_size)]
+
         scored_findings = []
 
-        for finding in findings:
-            scored_finding = finding.copy()
+        def process_chunk(chunk):
+            return [self._score_single_finding(finding, context) for finding in chunk]
 
-            # Calculate base risk score
-            base_score = self._calculate_base_score(finding)
-
-            # Apply context multipliers
-            context_multiplier = self._calculate_context_multiplier(finding, context)
-
-            # Calculate final risk score
-            risk_score = min(10, base_score * context_multiplier)
-
-            # Determine severity level
-            severity = self._score_to_severity(risk_score)
-
-            # Add risk information
-            scored_finding["risk_score"] = round(risk_score, 2)
-            scored_finding["severity"] = severity
-            scored_finding["risk_factors"] = self._identify_risk_factors(finding, context)
-
-            scored_findings.append(scored_finding)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
+            futures = [executor.submit(process_chunk, chunk) for chunk in finding_chunks]
+            for future in concurrent.futures.as_completed(futures):
+                scored_findings.extend(future.result())
 
         return scored_findings
+
+    def _score_findings_sequential(self, findings: List[Dict[str, Any]], context: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Sequential version of risk scoring."""
+        scored_findings = []
+        for finding in findings:
+            scored_findings.append(self._score_single_finding(finding, context))
+        return scored_findings
+
+    def _score_single_finding(self, finding: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+        """Calculate risk score for a single finding."""
+        scored_finding = finding.copy()
+
+        # Calculate base risk score
+        base_score = self._calculate_base_score(finding)
+
+        # Apply context multipliers
+        context_multiplier = self._calculate_context_multiplier(finding, context)
+
+        # Calculate final risk score
+        risk_score = min(10, base_score * context_multiplier)
+
+        # Determine severity level
+        severity = self._score_to_severity(risk_score)
+
+        # Add risk information
+        scored_finding["risk_score"] = round(risk_score, 2)
+        scored_finding["severity"] = severity
+        scored_finding["risk_factors"] = self._identify_risk_factors(finding, context)
+
+        return scored_finding
 
     def _calculate_base_score(self, finding: Dict[str, Any]) -> float:
         """Calculate the base risk score for a finding."""

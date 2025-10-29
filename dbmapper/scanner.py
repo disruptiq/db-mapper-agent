@@ -137,6 +137,16 @@ def discover_files(
             if path.name not in allowed_extensions:
                 continue
 
+        # Skip very large files to avoid memory issues
+        try:
+            file_size = path.stat().st_size
+            max_file_size = 50 * 1024 * 1024  # 50MB limit
+            if file_size > max_file_size:
+                continue
+        except OSError:
+            # Skip files we can't stat
+            continue
+
         files.append(path)
 
     return files
