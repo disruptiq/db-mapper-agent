@@ -35,7 +35,13 @@ DEFAULT_EXCLUDE_PATTERNS = [
     "**/*.mp4", "**/*.avi", "**/*.mov", "**/*.mp3", "**/*.wav",
     "**/*.pyc", "**/__pycache__/**", "**/.git/**", "**/node_modules/**",
     "**/venv/**", "**/.venv/**", "**/env/**", "**/.env/**",
-    "**/*.md", "**/*.yaml", "**/*.yml"
+    "**/*.md", "**/*.yaml", "**/*.yml",
+    # Test files and directories
+    "**/test/**", "**/tests/**", "**/__tests__/**", "**/spec/**", "**/specs/**",
+    "**/*.test.*", "**/*.spec.*", "**/*Test.*", "**/*Spec.*",
+    "**/test_*", "**/*_test.*", "**/*_spec.*",
+    "test_*", "*_test.*", "*_spec.*",
+    "**/fixtures/**", "**/mocks/**"
 ]
 
 
@@ -122,13 +128,13 @@ def discover_files(
             continue
 
         # Check exclude patterns
-        relative_path = str(path.relative_to(repo_path))
-        if any(fnmatch.fnmatch(relative_path, excl) for excl in exclude_patterns):
+        relative_path = path.relative_to(repo_path)
+        if any(relative_path.match(excl) for excl in exclude_patterns):
             continue
 
         # Check include patterns
         if include_patterns != ["**/*"]:  # Only filter if not including everything
-            if not any(fnmatch.fnmatch(relative_path, incl) for incl in include_patterns):
+            if not any(relative_path.match(incl) for incl in include_patterns):
                 continue
 
         # Check extension

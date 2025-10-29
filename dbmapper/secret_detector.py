@@ -80,6 +80,10 @@ def detect_secrets(content: str, file_path: Path) -> List[Dict[str, Any]]:
                 if _should_ignore_secret(secret_value):
                     continue
 
+                # Skip variable references (e.g., object.property, variableName)
+                if _looks_like_variable_reference(secret_value):
+                    continue
+
                 # Additional validation
                 if not _validate_secret(secret_value, secret_type):
                     continue
@@ -112,6 +116,32 @@ def _is_comment_or_docstring(line: str, file_path: Path) -> bool:
         return line.startswith('--')
     elif file_path.suffix in ['.yml', '.yaml']:
         return line.startswith('#')
+
+    return False
+
+
+def _looks_like_variable_reference(secret_value: str) -> bool:
+    """Check if the secret value looks like a variable reference rather than a hardcoded secret."""
+    # Variable references typically:
+    # - Contain dots (object.property)
+    # - Contain camelCase or snake_case patterns
+    # - Don't contain spaces
+    # - May contain special characters like underscores, dots
+
+    if ' ' in secret_value:
+        return False  # If it has spaces, it's likely not a variable reference
+
+    # Check for object.property patterns
+    if '.' in secret_value and not secret_value.startswith('http'):
+        return True
+
+    # Check for camelCase or PascalCase (common in programming)
+    if re.search(r'[a-z][A-Z]|[A-Z][a-z]', secret_value):
+        return True
+
+    # Check for snake_case
+    if '_' in secret_value and not secret_value.startswith('http'):
+        return True
 
     return False
 
