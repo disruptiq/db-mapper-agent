@@ -5,6 +5,8 @@ import argparse
 import sys
 import os
 import signal
+import cProfile
+import pstats
 from pathlib import Path
 
 from .runner import run_scan
@@ -91,10 +93,28 @@ def main():
     help="Number of parallel worker threads (default: min(CPU cores * 2, 32))",
     )
 
+    parser.add_argument(
+        "--profile",
+        action="store_true",
+        help="Enable performance profiling to identify bottlenecks",
+    )
+
     args = parser.parse_args()
 
     try:
-        run_scan(args)
+        if args.profile:
+            print("Profiling enabled. This will add some overhead to the scan.")
+            profiler = cProfile.Profile()
+            profiler.enable()
+
+            run_scan(args)
+
+            profiler.disable()
+            print("\n=== Performance Profile (Top 20 functions by cumulative time) ===")
+            stats = pstats.Stats(profiler).sort_stats('cumulative')
+            stats.print_stats(20)
+        else:
+            run_scan(args)
     except Exception as e:
         print(f"Error during scan: {e}", file=sys.stderr)
         sys.exit(1)

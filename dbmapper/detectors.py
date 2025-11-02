@@ -17,11 +17,10 @@ import concurrent.futures
 
 
 # Pre-compiled regex patterns for performance
-DSN_PATTERN = re.compile(r'(?i)(postgres(?:ql)?|mysql|mariadb|mongodb|sqlite|mssql)://[\w:@\-\.\/\%\?\=~\&]+')
-ENV_VAR_PATTERN = re.compile(r'(?m)^(DB_URL|DATABASE_URL|[A-Z_]*DB[A-Z_]*)[\s]*=[\s]*(.+)')
-ORM_MODEL_PATTERN = re.compile(r'class\s+(\w+)\s*\([^)]*models\.Model[^)]*\)')
-SQL_PATTERN = re.compile(r'(?is)(SELECT|INSERT|UPDATE|DELETE|CREATE\s+TABLE|ALTER\s+TABLE)\s+.+')
-
+DSN_PATTERN = re.compile(r'(?i)(postgres(?:ql)?|mysql|mariadb|mongodb|sqlite|mssql)://[\\w:@\\-\\.\\/\\%\\?\\=~\\&]+')
+ENV_VAR_PATTERN = re.compile(r'(?m)^(DB_URL|DATABASE_URL|[A-Z_]*DB[A-Z_]*)[\\s]*=[\\s]*(.+)')
+ORM_MODEL_PATTERN = re.compile(r'class\\s+(\\w+)\\s*\\([^)]*models\\.Model[^)]*\\)')
+SQL_PATTERN = re.compile(r'(?is)(SELECT|INSERT|UPDATE|DELETE|CREATE\\s+TABLE|ALTER\\s+TABLE)\\s+.+')
 
 def process_single_file(file_path: Path) -> List[Dict[str, Any]]:
     """Process a single file for database artifacts."""
@@ -146,44 +145,47 @@ def run_detectors(files: List[Path], threads: int = 8) -> List[Dict[str, Any]]:
     """Run all enabled detectors on the discovered files.
 
     Args:
-    files: List of file paths to scan
-    threads: Number of threads to use
+        files: List of file paths to scan
+        threads: Number of threads to use
 
     Returns:
-    List of findings
+        List of findings
     """
     findings = []
-    future_to_file = {}
 
-    try:
-            if threads > 1:
-                # Use ProcessPoolExecutor for CPU-intensive file processing (AST parsing, regex matching)
-                # Limit to reasonable number to avoid excessive memory usage
-                max_workers = min(threads, 32)  # Cap at 32 processes
-                with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
-    # Submit all file processing tasks
-                    future_to_file = {executor.submit(process_single_file, file_path): file_path for file_path in files}
+    # Adaptive parallelism: use threads for small workloads, processes for large ones
+    num_files = len(files)
 
-    # Collect results as they complete
-                    # Collect results as they complete
-                    for future in concurrent.futures.as_completed(future_to_file):
-                        file_findings = future.result()
-                        findings.extend(file_findings)
-            else:
-                # Sequential processing
-                for file_path in files:
-                    file_findings = process_single_file(file_path)
+    # For small number of files, sequential processing is faster due to process overhead
+    if num_files <= 10:
+        for file_path in files:
+            file_findings = process_single_file(file_path)
+            findings.extend(file_findings)
+    elif threads > 1:
+        # For medium workloads, use ThreadPoolExecutor (lower overhead than ProcessPoolExecutor)
+        if num_files <= 50:
+            max_workers = min(threads, 16)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                future_to_file = {executor.submit(process_single_file, file_path): file_path for file_path in files}
+                for future in concurrent.futures.as_completed(future_to_file):
+                    file_findings = future.result()
                     findings.extend(file_findings)
+        else:
+            # For large workloads, use ProcessPoolExecutor
+            max_workers = min(threads, 32)
+            with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+                future_to_file = {executor.submit(process_single_file, file_path): file_path for file_path in files}
+                for future in concurrent.futures.as_completed(future_to_file):
+                    file_findings = future.result()
+                    findings.extend(file_findings)
+    else:
+        # Sequential processing
+        for file_path in files:
+            file_findings = process_single_file(file_path)
+            findings.extend(file_findings)
 
-            # Assign IDs to all findings
-            for i, finding in enumerate(findings, 1):
-                finding["id"] = f"f-{i:04d}"
+    # Assign IDs to all findings
+    for i, finding in enumerate(findings, 1):
+        finding["id"] = f"f-{i:04d}"
 
-            return findings
-    except KeyboardInterrupt:
-        print("Scan interrupted during detector processing. Cancelling remaining tasks...", file=sys.stderr)
-        # Cancel any pending futures
-        for future in future_to_file.values():
-            if not future.done():
-                future.cancel()
-        raise
+    return findings
