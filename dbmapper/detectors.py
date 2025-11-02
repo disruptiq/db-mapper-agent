@@ -42,7 +42,7 @@ def process_single_file(file_path: Path) -> List[Dict[str, Any]]:
     except Exception:
         return findings  # Return empty list for unreadable files
 
-    # AST-based detection for supported languages
+    # AST-based detection for supported languages (only Python)
     ast_findings = detect_with_ast(content, file_path)
     findings.extend(ast_findings)
 

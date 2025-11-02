@@ -49,12 +49,13 @@ DEFAULT_EXCLUDE_PATTERNS = [
 def _get_git_files(repo_path: Path) -> List[Path]:
     """Get all files tracked by git in the repository."""
     try:
+        # Use git ls-files --cached for tracked files only (faster for scanning)
         result = subprocess.run(
-            ['git', 'ls-files'],
+            ['git', 'ls-files', '--cached'],
             cwd=repo_path,
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=60  # Increased timeout for massive repos
         )
         if result.returncode == 0:
             files = []
@@ -62,7 +63,7 @@ def _get_git_files(repo_path: Path) -> List[Path]:
                 if line.strip():
                     files.append(repo_path / line.strip())
             return files
-    except (subprocess.SubprocessError, FileNotFoundError):
+    except (subprocess.SubprocessError, FileNotFoundError, subprocess.TimeoutExpired):
         pass
     return []
 
@@ -108,13 +109,13 @@ def discover_files(
     allowed_extensions.update(LANGUAGE_EXTENSIONS["docker"])
     allowed_extensions.update(LANGUAGE_EXTENSIONS["terraform"])
 
-    # Use git ls-files for faster discovery (respects .gitignore and is efficient)
+    # Use git ls-files --cached for fastest discovery in git repos (respects .gitignore)
     all_files = []
     git_files = _get_git_files(repo_path)
     if git_files:
         all_files = git_files
     else:
-        # Fallback to filesystem traversal if git ls-files fails
+        # Fallback to filesystem traversal if git ls-files fails (non-git repos)
         for pattern in include_patterns:
             for path in repo_path.rglob(pattern):
                 if path.is_file():

@@ -12,13 +12,14 @@ class PythonASTParser:
     def __init__(self):
         self.findings = []
 
-    def parse_file(self, file_path: Path) -> List[Dict[str, Any]]:
-        """Parse a Python file using AST for accurate extraction."""
+    def parse_content(self, content: str, file_path: Path) -> List[Dict[str, Any]]:
+        """Parse Python content using AST for accurate extraction."""
         self.findings = []
 
         try:
-            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                content = f.read()
+            # Skip AST parsing for very large content to avoid performance issues
+            if len(content) > 2 * 1024 * 1024:  # 2MB limit for AST parsing
+                return self.findings
 
             tree = ast.parse(content, filename=str(file_path))
             self.visit(tree, file_path)
@@ -193,7 +194,7 @@ def detect_with_ast(content: str, file_path: Path) -> List[Dict[str, Any]]:
     """Use AST parsing for Python files, fall back to regex for others."""
     if file_path.suffix == '.py':
         parser = PythonASTParser()
-        return parser.parse_file(file_path)
+        return parser.parse_content(content, file_path)
     else:
         # For non-Python files, return empty (will be handled by regex detectors)
         return []

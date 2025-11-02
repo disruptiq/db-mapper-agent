@@ -87,8 +87,8 @@ def main():
     parser.add_argument(
     "--threads",
     type=int,
-    default=max(os.cpu_count() or 4, 8),  # At least 8 threads for better performance
-    help="Number of parallel worker threads (default: max(CPU count, 8))",
+    default=min((os.cpu_count() or 4) * 2, 32),  # Scale with CPU cores, up to 32
+    help="Number of parallel worker threads (default: min(CPU cores * 2, 32))",
     )
 
     args = parser.parse_args()
