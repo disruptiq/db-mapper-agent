@@ -129,14 +129,8 @@ def process_single_file(file_path: Path) -> List[Dict[str, Any]]:
     secret_findings = detect_secrets(content, file_path)
     findings.extend(secret_findings)
 
-    # Generate natural language descriptions for all findings (parallelized)
-    if findings:
-        # Use ThreadPoolExecutor for description generation since it's I/O bound with AI calls
-        with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(findings), 16)) as desc_executor:
-            desc_futures = {desc_executor.submit(generate_finding_description, finding): finding for finding in findings}
-            for future in concurrent.futures.as_completed(desc_futures):
-                finding = desc_futures[future]
-                finding["description"] = future.result()
+    # Skip description generation for now - will be done in batch later
+    # This avoids ThreadPoolExecutor overhead per file
 
     return findings
 
@@ -162,17 +156,26 @@ def run_detectors(files: List[Path], threads: int = 8) -> List[Dict[str, Any]]:
             file_findings = process_single_file(file_path)
             findings.extend(file_findings)
     elif threads > 1:
-        # For medium workloads, use ThreadPoolExecutor (lower overhead than ProcessPoolExecutor)
+        # Adaptive executor selection based on workload size
         if num_files <= 50:
+            # Small-medium workloads: use ThreadPoolExecutor
             max_workers = min(threads, 16)
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
                 future_to_file = {executor.submit(process_single_file, file_path): file_path for file_path in files}
                 for future in concurrent.futures.as_completed(future_to_file):
                     file_findings = future.result()
                     findings.extend(file_findings)
+        elif num_files <= 500:
+            # Medium-large workloads: use ProcessPoolExecutor with moderate parallelism
+            max_workers = min(threads * 2, 48, 61)  # ProcessPoolExecutor limit
+            with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
+                future_to_file = {executor.submit(process_single_file, file_path): file_path for file_path in files}
+                for future in concurrent.futures.as_completed(future_to_file):
+                    file_findings = future.result()
+                    findings.extend(file_findings)
         else:
-            # For large workloads, use ProcessPoolExecutor
-            max_workers = min(threads, 32)
+            # Very large workloads: use ProcessPoolExecutor with high parallelism
+            max_workers = min(threads * 4, 128, 61)  # ProcessPoolExecutor limit
             with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
                 future_to_file = {executor.submit(process_single_file, file_path): file_path for file_path in files}
                 for future in concurrent.futures.as_completed(future_to_file):
@@ -187,5 +190,14 @@ def run_detectors(files: List[Path], threads: int = 8) -> List[Dict[str, Any]]:
     # Assign IDs to all findings
     for i, finding in enumerate(findings, 1):
         finding["id"] = f"f-{i:04d}"
+
+    # Generate descriptions in batch to avoid per-file ThreadPoolExecutor overhead
+    if findings:
+        print(f"Generating descriptions for {len(findings)} findings...")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=min(len(findings), 32)) as desc_executor:
+            desc_futures = {desc_executor.submit(generate_finding_description, finding): finding for finding in findings}
+            for future in concurrent.futures.as_completed(desc_futures):
+                finding = desc_futures[future]
+                finding["description"] = future.result()
 
     return findings

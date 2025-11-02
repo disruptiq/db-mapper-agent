@@ -2,6 +2,7 @@
 """File discovery module for scanning repositories."""
 
 import fnmatch
+import os
 import subprocess
 from pathlib import Path
 from typing import List, Optional
@@ -121,24 +122,65 @@ def discover_files(
                 if path.is_file():
                     all_files.append(path)
 
-    # Filter files
+    # Pre-compute exclude extensions and patterns for faster filtering
+    exclude_extensions = set()
+    exclude_path_patterns = []
+    exclude_dir_patterns = []
+
+    for pattern in exclude_patterns:
+        if pattern.startswith("**/*.") and pattern.count("*") == 1:
+            # Simple extension pattern like "**/*.jpg"
+            exclude_extensions.add("." + pattern.split(".")[-1])
+        elif pattern.endswith("/**"):
+            # Directory pattern like "**/node_modules/**"
+            exclude_dir_patterns.append(pattern[:-3])  # Remove "/**"
+        else:
+            exclude_path_patterns.append(pattern)
+
+    # Filter files with optimized checks
     files = []
+    repo_path_str = str(repo_path)
+
     for path in all_files:
+        path_str = str(path)
+
+        # Quick extension check first (fastest)
+        if path.suffix in exclude_extensions:
+            continue
+
+        # Fast directory exclusion check
+        if exclude_dir_patterns:
+            for dir_pattern in exclude_dir_patterns:
+                if dir_pattern in path_str:
+                    continue
+
         # Check if file actually exists (git ls-files might include deleted files)
         if not path.exists():
             continue
 
-        # Check exclude patterns
-        relative_path = path.relative_to(repo_path)
-        if any(relative_path.match(excl) for excl in exclude_patterns):
-            continue
+        # Check exclude path patterns (only for complex patterns)
+        if exclude_path_patterns:
+            # Use string relative path calculation (faster than pathlib.relative_to)
+            if path_str.startswith(repo_path_str):
+                relative_str = path_str[len(repo_path_str):].lstrip(os.sep)
+            else:
+                relative_str = str(path.relative_to(repo_path))
+
+            if any(fnmatch.fnmatch(relative_str, excl) for excl in exclude_path_patterns):
+                continue
 
         # Check include patterns
         if include_patterns != ["**/*"]:  # Only filter if not including everything
-            if not any(relative_path.match(incl) for incl in include_patterns):
+            if not relative_str:
+                if path_str.startswith(repo_path_str):
+                    relative_str = path_str[len(repo_path_str):].lstrip(os.sep)
+                else:
+                    relative_str = str(path.relative_to(repo_path))
+
+            if not any(fnmatch.fnmatch(relative_str, incl) for incl in include_patterns):
                 continue
 
-        # Check extension
+        # Check allowed extensions
         if allowed_extensions and path.suffix not in allowed_extensions:
             # Check for exact filename matches (like Dockerfile)
             if path.name not in allowed_extensions:
